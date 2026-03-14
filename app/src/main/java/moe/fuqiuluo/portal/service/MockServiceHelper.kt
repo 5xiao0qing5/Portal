@@ -12,6 +12,7 @@ import com.alibaba.fastjson2.JSONObject
 import moe.fuqiuluo.portal.Portal
 import moe.fuqiuluo.portal.android.root.ShellUtils
 import moe.fuqiuluo.portal.cell.OpenCellIdClient
+import moe.fuqiuluo.portal.ext.accuracy
 import moe.fuqiuluo.portal.ext.altitude
 import moe.fuqiuluo.portal.ext.debug
 import moe.fuqiuluo.portal.ext.disableFusedProvider
@@ -490,16 +491,23 @@ object MockServiceHelper {
         }
     }
 
-    fun putConfig(locationManager: LocationManager, context: Context): Boolean {
+    fun putConfig(
+        locationManager: LocationManager,
+        context: Context,
+        hookSensorOverride: Boolean? = null,
+    ): Boolean {
         if (!::randomKey.isInitialized) {
             return false
         }
 
         val isMockEnabled = isMockStart(locationManager)
+        val accuracy = context.accuracy
+        val hookSensorEnabled = hookSensorOverride ?: context.hookSensor
 
         FakeLoc.enable = isMockEnabled
         FakeLoc.altitude = context.altitude
         FakeLoc.speed = context.speed
+        FakeLoc.accuracy = accuracy
         FakeLoc.enableDebugLog = context.debug
         FakeLoc.disableGetCurrentLocation = context.disableGetCurrentLocation
         FakeLoc.disableRegisterLocationListener = context.disableRegisterLocationListener
@@ -508,7 +516,7 @@ object MockServiceHelper {
         FakeLoc.minSatellites = context.minSatelliteCount
         FakeLoc.enableAGPS = context.enableAGPS
         FakeLoc.enableNMEA = context.enableNMEA
-        FakeLoc.enableSensorMock = context.hookSensor
+        FakeLoc.enableSensorMock = hookSensorEnabled
         FakeLoc.stableStaticLocation = context.stableStaticLocation
         FakeLoc.disableRequestGeofence = !context.enableRequestGeofence
         FakeLoc.disableGetFromLocation = !context.enableGetFromLocation
@@ -520,6 +528,7 @@ object MockServiceHelper {
         rely.putBoolean("enable", isMockEnabled)
         rely.putDouble("altitude", FakeLoc.altitude)
         rely.putDouble("speed", FakeLoc.speed)
+        rely.putFloat("accuracy", FakeLoc.accuracy)
         rely.putBoolean("enable_debug_log", FakeLoc.enableDebugLog)
         rely.putBoolean("disable_get_current_location", FakeLoc.disableGetCurrentLocation)
         rely.putBoolean("disable_register_location_listener", FakeLoc.disableRegisterLocationListener)
@@ -528,7 +537,7 @@ object MockServiceHelper {
         rely.putInt("min_satellites", FakeLoc.minSatellites)
         rely.putBoolean("enable_agps", FakeLoc.enableAGPS)
         rely.putBoolean("enable_nmea", FakeLoc.enableNMEA)
-        rely.putBoolean("hook_sensor", FakeLoc.enableSensorMock)
+        rely.putBoolean("hook_sensor", hookSensorEnabled)
         rely.putBoolean("stable_static_location", FakeLoc.stableStaticLocation)
         rely.putBoolean("disable_request_geofence", FakeLoc.disableRequestGeofence)
         rely.putBoolean("disable_get_from_location", FakeLoc.disableGetFromLocation)

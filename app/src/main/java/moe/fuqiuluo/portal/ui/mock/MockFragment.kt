@@ -530,10 +530,15 @@ class MockFragment : Fragment() {
                             return@withContext
                         }
 
+                        if (!MockServiceHelper.putConfig(it, context)) {
+                            showToast("同步配置失败")
+                            return@let
+                        }
                         if (!MockServiceHelper.setLocation(it, selectedLocation.lat, selectedLocation.lon)) {
                             showToast("更新位置失败")
                             return@let
                         }
+
                         val cellRefresh = MockServiceHelper.refreshCellConfigByOpenCellId(
                             it,
                             context,

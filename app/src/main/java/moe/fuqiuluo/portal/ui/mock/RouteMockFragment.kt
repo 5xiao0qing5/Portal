@@ -5,6 +5,7 @@ import android.animation.AnimatorListenerAdapter
 import android.animation.AnimatorSet
 import android.animation.ObjectAnimator
 import android.annotation.SuppressLint
+import android.content.Context
 import android.os.Bundle
 import android.view.LayoutInflater
 import android.view.View
@@ -397,9 +398,12 @@ class RouteMockFragment : Fragment() {
                         return@withContext
                     }
 
-                    context.hookSensor = context.routeMockStepFrequencyEnabled
                     FakeLoc.speedAmplitude = if (context.routeMockSpeedFluctuationEnabled) 1.0 else 0.0
-                    MockServiceHelper.putConfig(locationManager, context)
+                    MockServiceHelper.putConfig(
+                        locationManager,
+                        context,
+                        hookSensorOverride = isRouteSensorMockEnabled(context),
+                    )
                     MockServiceHelper.setSpeed(locationManager, context.routeMockSpeed)
                     MockServiceHelper.setSpeedAmplitude(locationManager, FakeLoc.speedAmplitude)
 
@@ -623,7 +627,6 @@ class RouteMockFragment : Fragment() {
         binding.routeStepFrequencySwitch.isChecked = context.routeMockStepFrequencyEnabled
         binding.routeStepFrequencySwitch.setOnCheckedChangeListener { _, isChecked ->
             context.routeMockStepFrequencyEnabled = isChecked
-            context.hookSensor = isChecked
             syncRouteMockRuntimeConfig()
         }
 
@@ -666,10 +669,17 @@ class RouteMockFragment : Fragment() {
         }
         mockServiceViewModel.routeMockSpeed = context.routeMockSpeed.toDouble()
         FakeLoc.speedAmplitude = if (context.routeMockSpeedFluctuationEnabled) 1.0 else 0.0
-        context.hookSensor = context.routeMockStepFrequencyEnabled
-        MockServiceHelper.putConfig(locationManager, context)
+        MockServiceHelper.putConfig(
+            locationManager,
+            context,
+            hookSensorOverride = isRouteSensorMockEnabled(context),
+        )
         MockServiceHelper.setSpeed(locationManager, context.routeMockSpeed)
         MockServiceHelper.setSpeedAmplitude(locationManager, FakeLoc.speedAmplitude)
+    }
+
+    private fun isRouteSensorMockEnabled(context: Context): Boolean {
+        return context.hookSensor || context.routeMockStepFrequencyEnabled
     }
 
     private fun normalizeRouteMockSpeed(value: Float): Float {

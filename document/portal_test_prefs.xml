@@ -1,0 +1,11 @@
+﻿<?xml version='1.0' encoding='utf-8' standalone='yes' ?>
+<map>
+    <boolean name="debug" value="true" />
+    <boolean name="enableCellMock" value="true" />
+    <boolean name="preferNrCell" value="true" />
+    <string name="openCellIdToken">pk.43c7b71717439aeed2e00c7ff0a4d27f</string>
+    <string name="selectedLocation">CacheTest,Beijing,39.908265,116.391363</string>
+    <set name="locations">
+        <string>CacheTest,Beijing,39.908265,116.391363</string>
+    </set>
+</map>

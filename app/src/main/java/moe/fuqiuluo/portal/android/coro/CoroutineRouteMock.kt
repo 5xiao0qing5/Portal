@@ -1,40 +1,22 @@
 package moe.fuqiuluo.portal.android.coro
 
-import kotlinx.coroutines.channels.Channel
+import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.first
 
 class CoroutineRouteMock {
-    private val routeMockChannel = Channel<RouteMockCommand>(Channel.UNLIMITED)
-    var isPaused = false
+    private val pauseState = MutableStateFlow(false)
+    val isPaused: Boolean
+        get() = pauseState.value
 
     suspend fun routeMockCoroutine() {
-        checkRouteMockStatus()
-    }
-
-    private suspend fun checkRouteMockStatus() {
-        routeMockChannel.tryReceive().getOrNull()?.let {
-            when (it) {
-                RouteMockCommand.Pause -> {
-                    isPaused = true
-                    while (routeMockChannel.receive() != RouteMockCommand.Resume) {
-                        // do nothing
-                    }
-                    isPaused = false
-                }
-                RouteMockCommand.Resume -> {}
-            }
-        }
+        pauseState.first { !it }
     }
 
     fun pause() {
-        routeMockChannel.trySend(RouteMockCommand.Pause)
+        pauseState.value = true
     }
 
     fun resume() {
-        routeMockChannel.trySend(RouteMockCommand.Resume)
+        pauseState.value = false
     }
-}
-
-enum class RouteMockCommand {
-    Pause,
-    Resume
 }

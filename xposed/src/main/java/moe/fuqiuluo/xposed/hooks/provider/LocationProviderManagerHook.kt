@@ -20,8 +20,6 @@ import moe.fuqiuluo.xposed.utils.onceHook
 import moe.fuqiuluo.xposed.utils.onceHookAllMethod
 import moe.fuqiuluo.xposed.utils.onceHookMethodBefore
 import java.util.Collections
-import kotlin.random.Random
-
 object LocationProviderManagerHook {
     private val hookOnFetchLocationResult = beforeHook {
         if (args.isEmpty() || args.isEmpty()) return@beforeHook
@@ -51,20 +49,27 @@ object LocationProviderManagerHook {
             location.isMock = false
         }
         location.altitude = FakeLoc.altitude
-        location.speed = originLocation.speed
+        location.speed = FakeLoc.injectedSpeed(originLocation.speed)
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
-            location.speedAccuracyMetersPerSecond = 0F
+            location.speedAccuracyMetersPerSecond = if (FakeLoc.hasBearings || !FakeLoc.stableStaticLocation) {
+                location.speed.coerceAtLeast(0.1f)
+            } else {
+                0f
+            }
         }
 
         location.time = originLocation.time
         location.accuracy = originLocation.accuracy
-        var modBearing = FakeLoc.bearing % 360.0 + 0.0
-        if (modBearing < 0) {
-            modBearing += 360.0
-        }
-        location.bearing = modBearing.toFloat()
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O && originLocation.hasBearingAccuracy()) {
-            location.bearingAccuracyDegrees = modBearing.toFloat()
+        if (FakeLoc.hasBearings || !FakeLoc.stableStaticLocation) {
+            location.bearing = FakeLoc.bearing.toFloat()
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+                location.bearingAccuracyDegrees = 1.0f
+            }
+        } else if (originLocation.hasBearing()) {
+            location.bearing = originLocation.bearing
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O && originLocation.hasBearingAccuracy()) {
+                location.bearingAccuracyDegrees = originLocation.bearingAccuracyDegrees
+            }
         }
         location.elapsedRealtimeNanos = originLocation.elapsedRealtimeNanos
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
@@ -276,20 +281,27 @@ object LocationProviderManagerHook {
                     location.isMock = false
                 }
                 location.altitude = FakeLoc.altitude
-                location.speed = originLocation.speed
+                location.speed = FakeLoc.injectedSpeed(originLocation.speed)
                 if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
-                    location.speedAccuracyMetersPerSecond = 0F
+                    location.speedAccuracyMetersPerSecond = if (FakeLoc.hasBearings || !FakeLoc.stableStaticLocation) {
+                        location.speed.coerceAtLeast(0.1f)
+                    } else {
+                        0f
+                    }
                 }
 
                 location.time = originLocation.time
                 location.accuracy = originLocation.accuracy
-                var modBearing = FakeLoc.bearing % 360.0 + 0.0
-                if (modBearing < 0) {
-                    modBearing += 360.0
-                }
-                location.bearing = modBearing.toFloat()
-                if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O && originLocation.hasBearingAccuracy()) {
-                    location.bearingAccuracyDegrees = modBearing.toFloat()
+                if (FakeLoc.hasBearings || !FakeLoc.stableStaticLocation) {
+                    location.bearing = FakeLoc.bearing.toFloat()
+                    if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+                        location.bearingAccuracyDegrees = 1.0f
+                    }
+                } else if (originLocation.hasBearing()) {
+                    location.bearing = originLocation.bearing
+                    if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O && originLocation.hasBearingAccuracy()) {
+                        location.bearingAccuracyDegrees = originLocation.bearingAccuracyDegrees
+                    }
                 }
                 location.elapsedRealtimeNanos = originLocation.elapsedRealtimeNanos
                 if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {

@@ -8,6 +8,7 @@ import android.os.Build
 import android.os.Bundle
 import android.os.Parcel
 import moe.fuqiuluo.xposed.utils.BinderUtils
+import moe.fuqiuluo.xposed.utils.CellMockConfig
 import moe.fuqiuluo.xposed.utils.FakeLoc
 import moe.fuqiuluo.xposed.utils.Logger
 
@@ -118,9 +119,13 @@ abstract class BaseDivineService {
             FakeLoc.disableFusedLocation = rely.getBoolean("disable_fused_location", FakeLoc.disableFusedLocation)
             FakeLoc.enableAGPS = rely.getBoolean("enable_agps", FakeLoc.enableAGPS)
             FakeLoc.enableNMEA = rely.getBoolean("enable_nmea", FakeLoc.enableNMEA)
+            FakeLoc.enableSensorMock = rely.getBoolean("hook_sensor", FakeLoc.enableSensorMock)
+            FakeLoc.sensorMotionActive = rely.getBoolean("sensor_motion_active", FakeLoc.sensorMotionActive)
+            FakeLoc.stableStaticLocation = rely.getBoolean("stable_static_location", FakeLoc.stableStaticLocation)
             FakeLoc.hideMock = rely.getBoolean("hide_mock", FakeLoc.hideMock)
             FakeLoc.hookWifi = rely.getBoolean("hook_wifi", FakeLoc.hookWifi)
             FakeLoc.needDowngradeToCdma = rely.getBoolean("need_downgrade_to_2g", FakeLoc.needDowngradeToCdma)
+            FakeLoc.cellConfig = CellMockConfig.from(rely, FakeLoc.cellConfig)
             Logger.debug("Synced config for DivineService")
         } else {
             Logger.error("Failed to sync config for DivineService")

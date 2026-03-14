@@ -25,12 +25,39 @@
                 android:layout_height="wrap_content"
                 android:orientation="vertical">
 
-                <TextView
+                <LinearLayout
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
-                    android:textColor="@color/portal_mini_title_color"
-                    android:textAppearance="@style/TextAppearance.AppCompat.Inverse"
-                    android:text="@string/target_location"/>
+                    android:gravity="center_vertical"
+                    android:orientation="horizontal">
+
+                    <TextView
+                        android:layout_width="0dp"
+                        android:layout_height="wrap_content"
+                        android:layout_weight="1"
+                        android:text="@string/target_location"
+                        android:textAppearance="@style/TextAppearance.AppCompat.Inverse"
+                        android:textColor="?attr/portalMiniTitleColor" />
+
+                    <androidx.appcompat.widget.AppCompatImageButton
+                        android:id="@+id/button_refresh_cell_config"
+                        android:layout_width="36dp"
+                        android:layout_height="36dp"
+                        android:background="?attr/selectableItemBackgroundBorderless"
+                        android:contentDescription="@string/refresh_cell_config"
+                        android:padding="6dp"
+                        app:srcCompat="@drawable/baseline_refresh_24"
+                        app:tint="?attr/portalMiniTitleColor" />
+                </LinearLayout>
+
+                <TextView
+                    android:id="@+id/text_cell_config_status"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="4dp"
+                    android:text="@string/cell_config_status_default"
+                    android:textAppearance="@style/TextAppearance.AppCompat.Caption"
+                    android:textColor="?attr/portalMiniTitleColor" />
 
                 <LinearLayout
                     android:layout_width="match_parent"
@@ -46,7 +73,7 @@
                         android:text="@string/none"
                         android:textStyle="bold"
                         android:textAppearance="@style/TextAppearance.AppCompat.Title"
-                        android:textColor="@color/black"/>
+                        android:textColor="?attr/portalTextColor"/>
 
                     <TextView
                         android:id="@+id/mock_location_address"
@@ -54,7 +81,7 @@
                         android:layout_height="wrap_content"
                         android:text="@string/none_none"
                         android:textAppearance="@style/TextAppearance.AppCompat.Body1"
-                        android:textColor="@color/black"/>
+                        android:textColor="?attr/portalTextColor"/>
 
                     <LinearLayout
                         android:layout_width="match_parent"
@@ -67,7 +94,7 @@
                             android:layout_height="wrap_content"
                             android:text="@string/latlon_display"
                             android:textAppearance="@style/TextAppearance.AppCompat.Body2"
-                            android:textColor="@color/black"/>
+                            android:textColor="?attr/portalTextColor"/>
 
                         <TextView
                             android:id="@+id/mock_location_latlon"
@@ -75,7 +102,7 @@
                             android:layout_height="wrap_content"
                             android:text="@string/default_latlon"
                             android:textAppearance="@style/TextAppearance.AppCompat.Body2"
-                            android:textColor="@color/portal_appbar_color_center"/>
+                            android:textColor="?attr/portalAppBarColorCenter"/>
 
                     </LinearLayout>
 
@@ -96,7 +123,7 @@
                             android:id="@+id/switch_mock"
                             android:layout_width="wrap_content"
                             android:layout_height="28dp"
-                            android:textColor="@color/white"
+                            android:textColor="?attr/portalButtonTextColor"
                             android:text="@string/start_mock"
                             style="@style/Widget.MaterialComponents.Button.UnelevatedButton"
                             android:insetRight="0dp"
@@ -108,7 +135,7 @@
                             app:iconGravity="textStart"
                             app:iconPadding="0dp"
                             android:padding="6dp"
-                            app:iconTint="@color/white"
+                            app:iconTint="?attr/portalButtonIconColor"
                             app:cornerRadius="12dp"/>
 
                     </LinearLayout>
@@ -124,11 +151,11 @@
                             android:layout_width="wrap_content"
                             android:layout_height="wrap_content"
                             android:checkMark="?android:attr/listChoiceIndicatorMultiple"
-                            android:checkMarkTint="@color/portal_mock_off"
+                            android:checkMarkTint="?attr/portalMockOffColor"
                             android:checked="false"
                             android:gravity="center"
                             android:text="@string/rocker"
-                            android:textColor="@color/portal_mock_off"
+                            android:textColor="?attr/portalMockOffColor"
                             android:textSize="12sp" />
                     </LinearLayout>
                 </LinearLayout>
@@ -144,7 +171,7 @@
             android:layout_marginRight="20dp"
             android:layout_marginBottom="4dp"
             android:textAppearance="@style/TextAppearance.AppCompat.Inverse"
-            android:textColor="@color/portal_mini_title_color"
+            android:textColor="?attr/portalMiniTitleColor"
             android:text="@string/history_location"/>
 
         <com.google.android.material.card.MaterialCardView
@@ -172,10 +199,12 @@
         android:layout_marginEnd="@dimen/fab_margin"
         android:contentDescription="@string/follow_location"
         app:srcCompat="@drawable/sharp_location_off_24"
-        android:backgroundTint="@color/portal_mock_off"
-        android:tint="@color/portal_appbar_color"
+        android:backgroundTint="?attr/portalMockOffColor"
+        android:tint="?attr/portalAppBarColor"
         app:fabSize="auto"
         android:visibility="gone"
         android:layout_gravity="bottom|end"/>
 
 </androidx.coordinatorlayout.widget.CoordinatorLayout>
+
+

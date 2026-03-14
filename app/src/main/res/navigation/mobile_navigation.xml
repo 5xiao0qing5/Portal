@@ -24,6 +24,12 @@
         tools:layout="@layout/fragment_gnss_mock" />
 
     <fragment
+        android:id="@+id/nav_step_debug"
+        android:name="moe.fuqiuluo.portal.ui.step.StepDebugFragment"
+        android:label="@string/menu_step_debug"
+        tools:layout="@layout/fragment_step_debug" />
+
+    <fragment
         android:id="@+id/nav_route_gallery"
         android:name="moe.fuqiuluo.portal.ui.mock.RouteMockFragment"
         android:label="@string/menu_route_mock"

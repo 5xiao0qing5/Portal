@@ -1,230 +1,225 @@
-package moe.fuqiuluo.portal.ext
+﻿package moe.fuqiuluo.portal.ext
 
 import android.content.Context
-import androidx.core.content.edit
-import com.alibaba.fastjson2.JSON
-import com.baidu.mapapi.map.BaiduMap
-import moe.fuqiuluo.portal.service.MockServiceHelper
 import moe.fuqiuluo.portal.ui.mock.HistoricalLocation
 import moe.fuqiuluo.portal.ui.mock.HistoricalRoute
-import moe.fuqiuluo.xposed.utils.FakeLoc
+import moe.fuqiuluo.portal.ui.theme.ThemePreset
 
 val Context.sharedPrefs
-    get() = getSharedPreferences(MockServiceHelper.PROVIDER_NAME, Context.MODE_PRIVATE)!!
+    get() = PortalPrefs.prefs(this)
 
 var Context.selectLocation: HistoricalLocation?
-    get() {
-        return sharedPrefs.getString("selectedLocation", null)?.let {
-            HistoricalLocation.fromString(it)
-        }
-    }
-    set(value) = sharedPrefs.edit {
-        putString("selectedLocation", value?.toString())
+    get() = PortalPrefs.getSelectedLocation(this)
+    set(value) {
+        PortalPrefs.setSelectedLocation(this, value)
     }
 
 var Context.selectRoute: HistoricalRoute?
-    get() {
-        return sharedPrefs.getString("selectedRoute", null)?.let {
-            try {
-                JSON.parseObject(it, HistoricalRoute::class.java)
-            } catch (e: Exception) {
-                sharedPrefs.edit {
-                    putString("selectedRoute", "")
-                }
-                null
-            }
-        }
-    }
-    set(value) = sharedPrefs.edit {
-        putString("selectedRoute", JSON.toJSONString(value))
+    get() = PortalPrefs.getSelectedRoute(this)
+    set(value) {
+        PortalPrefs.setSelectedRoute(this, value)
     }
 
 val Context.historicalLocations: List<HistoricalLocation>
-    get() {
-        return sharedPrefs.getStringSet("locations", emptySet())?.map {
-            HistoricalLocation.fromString(it)
-        } ?: emptyList()
-    }
+    get() = PortalPrefs.getHistoricalLocations(this)
 
 var Context.rawHistoricalLocations: Set<String>
-    get() {
-        return sharedPrefs.getStringSet("locations", emptySet()) ?: emptySet()
-    }
+    get() = PortalPrefs.getRawHistoricalLocations(this)
     set(value) {
-        sharedPrefs.edit {
-            putStringSet("locations", value)
-        }
+        PortalPrefs.setRawHistoricalLocations(this, value)
     }
 
 var Context.jsonHistoricalRoutes: String
-    get() {
-        return sharedPrefs.getString("routes", null) ?: ""
-    }
+    get() = PortalPrefs.getJsonHistoricalRoutes(this)
     set(value) {
-        sharedPrefs.edit {
-            putString("routes", value)
-        }
+        PortalPrefs.setJsonHistoricalRoutes(this, value)
     }
 
 var Context.reportDuration: Int
-    get() = sharedPrefs.getInt("reportDuration", 100)
-    set(value) = sharedPrefs.edit {
-        putInt("reportDuration", value)
+    get() = PortalPrefs.readConfig(this).reportDuration
+    set(value) {
+        PortalPrefs.updateConfig(this) { it.copy(reportDuration = value) }
     }
 
 var Context.minSatelliteCount: Int
-    get() = sharedPrefs.getInt("minSatelliteCount", 12)
-    set(value) = sharedPrefs.edit {
-        putInt("minSatelliteCount", value)
+    get() = PortalPrefs.readConfig(this).minSatelliteCount
+    set(value) {
+        PortalPrefs.updateConfig(this) { it.copy(minSatelliteCount = value) }
     }
 
 var Context.mapType: Int
-    get() = sharedPrefs.getInt("mapType", BaiduMap.MAP_TYPE_NORMAL)
-    set(value) = sharedPrefs.edit {
-        putInt("mapType", value)
+    get() = PortalPrefs.getMapType(this)
+    set(value) {
+        PortalPrefs.setMapType(this, value)
     }
 
 var Context.rockerCoords: Pair<Int, Int>
-    get() {
-        val x = sharedPrefs.getInt("rocker_x", 0)
-        val y = sharedPrefs.getInt("rocker_y", 0)
-        return Pair(x, y)
-    }
-    set(value) = sharedPrefs.edit {
-        putInt("rocker_x", value.first)
-        putInt("rocker_y", value.second)
+    get() = PortalPrefs.getRockerCoords(this)
+    set(value) {
+        PortalPrefs.setRockerCoords(this, value)
     }
 
 var Context.speed: Double
-    get() = sharedPrefs.getFloat("speed", FakeLoc.speed.toFloat()).toDouble()
-    set(value) = sharedPrefs.edit {
-        putFloat("speed", value.toFloat())
+    get() = PortalPrefs.readConfig(this).speed
+    set(value) {
+        PortalPrefs.updateConfig(this) { it.copy(speed = value) }
     }
 
 var Context.altitude: Double
-    get() = sharedPrefs.getFloat("altitude", FakeLoc.altitude.toFloat()).toDouble()
-    set(value) = sharedPrefs.edit {
-        putFloat("altitude", value.toFloat())
+    get() = PortalPrefs.readConfig(this).altitude
+    set(value) {
+        PortalPrefs.updateConfig(this) { it.copy(altitude = value) }
     }
 
 var Context.accuracy: Float
-    get() = sharedPrefs.getFloat("accuracy", FakeLoc.accuracy)
-    set(value) = sharedPrefs.edit {
-        putFloat("accuracy", value)
+    get() = PortalPrefs.readConfig(this).accuracy
+    set(value) {
+        PortalPrefs.updateConfig(this) { it.copy(accuracy = value) }
     }
 
 var Context.needOpenSELinux: Boolean
-    get() = sharedPrefs.getBoolean("needOpenSELinux", false)
-    set(value) = sharedPrefs.edit {
-        putBoolean("needOpenSELinux", value)
+    get() = PortalPrefs.readConfig(this).needOpenSELinux
+    set(value) {
+        PortalPrefs.updateConfig(this) { it.copy(needOpenSELinux = value) }
     }
 
 var Context.needDowngradeToCdma: Boolean
-    get() = sharedPrefs.getBoolean("needDowngradeToCdma", FakeLoc.needDowngradeToCdma)
-    set(value) = sharedPrefs.edit {
-        putBoolean("needDowngradeToCdma", value)
+    get() = PortalPrefs.readConfig(this).needDowngradeToCdma
+    set(value) {
+        PortalPrefs.updateConfig(this) { it.copy(needDowngradeToCdma = value) }
     }
 
 var Context.hookSensor: Boolean
-    get() = sharedPrefs.getBoolean("hookSensor", false)
-    set(value) = sharedPrefs.edit {
-        putBoolean("hookSensor", value)
+    get() = PortalPrefs.readConfig(this).hookSensor
+    set(value) {
+        PortalPrefs.updateConfig(this) { it.copy(hookSensor = value) }
     }
 
-//var Context.updateInterval: Long
-//    get() = sharedPrefs.getLong("updateInterval", FakeLoc.updateInterval)
-//
-//    set(value) = sharedPrefs.edit {
-//        putLong("updateInterval", value)
-//    }
-//
-//var Context.hideMock: Boolean
-//    get() = sharedPrefs.getBoolean("hideMock", FakeLoc.hideMock)
-//
-//    set(value) = sharedPrefs.edit {
-//        putBoolean("hideMock", value)
-//    }
-
 var Context.debug: Boolean
-    get() = sharedPrefs.getBoolean("debug", FakeLoc.enableDebugLog)
-    set(value) = sharedPrefs.edit {
-        putBoolean("debug", value)
+    get() = PortalPrefs.readConfig(this).debug
+    set(value) {
+        PortalPrefs.updateConfig(this) { it.copy(debug = value) }
     }
 
 var Context.disableGetCurrentLocation: Boolean
-    get() = sharedPrefs.getBoolean("disableGetCurrentLocation", FakeLoc.disableGetCurrentLocation)
-    set(value) = sharedPrefs.edit {
-        putBoolean("disableGetCurrentLocation", value)
+    get() = PortalPrefs.readConfig(this).disableGetCurrentLocation
+    set(value) {
+        PortalPrefs.updateConfig(this) { it.copy(disableGetCurrentLocation = value) }
     }
 
 var Context.disableRegisterLocationListener: Boolean
-    get() = sharedPrefs.getBoolean(
-        "disableRegitserLocationListener",
-        FakeLoc.disableRegisterLocationListener
-    )
-    set(value) = sharedPrefs.edit {
-        putBoolean("disableRegitserLocationListener", value)
+    get() = PortalPrefs.readConfig(this).disableRegisterLocationListener
+    set(value) {
+        PortalPrefs.updateConfig(this) { it.copy(disableRegisterLocationListener = value) }
     }
 
 var Context.disableFusedProvider: Boolean
-    get() = sharedPrefs.getBoolean("disableFusedProvider", FakeLoc.disableFusedLocation)
-    set(value) = sharedPrefs.edit {
-        putBoolean("disableFusedProvider", value)
-        FakeLoc.disableFusedLocation = value
+    get() = PortalPrefs.readConfig(this).disableFusedProvider
+    set(value) {
+        PortalPrefs.updateConfig(this) { it.copy(disableFusedProvider = value) }
     }
 
-/**
- * 是否允许地理围栏请求
- */
 var Context.enableRequestGeofence: Boolean
-    get() = sharedPrefs.getBoolean("enableRequestGeofence", !FakeLoc.disableRequestGeofence)
-    set(value) = sharedPrefs.edit {
-        putBoolean("enableRequestGeofence", value)
-        FakeLoc.disableRequestGeofence = !value
+    get() = PortalPrefs.readConfig(this).enableRequestGeofence
+    set(value) {
+        PortalPrefs.updateConfig(this) { it.copy(enableRequestGeofence = value) }
     }
 
-/**
- * 是否允许位置获取
- */
 var Context.enableGetFromLocation: Boolean
-    get() = sharedPrefs.getBoolean("enableGetFromLocation", !FakeLoc.disableGetFromLocation)
-    set(value) = sharedPrefs.edit {
-        putBoolean("enableGetFromLocation", value)
-        FakeLoc.disableGetFromLocation = !value
+    get() = PortalPrefs.readConfig(this).enableGetFromLocation
+    set(value) {
+        PortalPrefs.updateConfig(this) { it.copy(enableGetFromLocation = value) }
     }
 
-/**
- * 是否允许AGPS模块
- */
 var Context.enableAGPS: Boolean
-    get() = sharedPrefs.getBoolean("enableAGPS", FakeLoc.enableAGPS)
-    set(value) = sharedPrefs.edit {
-        putBoolean("enableAGPS", value)
-        FakeLoc.enableAGPS = value
+    get() = PortalPrefs.readConfig(this).enableAGPS
+    set(value) {
+        PortalPrefs.updateConfig(this) { it.copy(enableAGPS = value) }
     }
 
-/**
- * 是否允许NMEA模块
- */
 var Context.enableNMEA: Boolean
-    get() = sharedPrefs.getBoolean("enableNMEA", FakeLoc.enableNMEA)
-    set(value) = sharedPrefs.edit {
-        putBoolean("enableNMEA", value)
-        FakeLoc.enableNMEA = value
+    get() = PortalPrefs.readConfig(this).enableNMEA
+    set(value) {
+        PortalPrefs.updateConfig(this) { it.copy(enableNMEA = value) }
     }
 
 var Context.disableWifiScan: Boolean
-    get() = sharedPrefs.getBoolean("disableWifiScan", FakeLoc.enableNMEA)
-    set(value) = sharedPrefs.edit {
-        putBoolean("disableWifiScan", value)
-        FakeLoc.enableMockWifi = value
+    get() = PortalPrefs.readConfig(this).disableWifiScan
+    set(value) {
+        PortalPrefs.updateConfig(this) { it.copy(disableWifiScan = value) }
+    }
+
+var Context.stableStaticLocation: Boolean
+    get() = PortalPrefs.readConfig(this).stableStaticLocation
+    set(value) {
+        PortalPrefs.updateConfig(this) { it.copy(stableStaticLocation = value) }
     }
 
 var Context.loopBroadcastlocation: Boolean
-    get() = sharedPrefs.getBoolean("loopBroadcastLocation", FakeLoc.loopBroadcastLocation)
-    set(value) = sharedPrefs.edit {
-        putBoolean("loopBroadcastLocation", value)
-        FakeLoc.loopBroadcastLocation = value
+    get() = PortalPrefs.readConfig(this).loopBroadcastLocation
+    set(value) {
+        PortalPrefs.updateConfig(this) { it.copy(loopBroadcastLocation = value) }
     }
 
+var Context.enableCellMock: Boolean
+    get() = PortalPrefs.readConfig(this).enableCellMock
+    set(value) {
+        PortalPrefs.updateConfig(this) { it.copy(enableCellMock = value) }
+    }
 
+var Context.preferNrCell: Boolean
+    get() = PortalPrefs.readConfig(this).preferNrCell
+    set(value) {
+        PortalPrefs.updateConfig(this) { it.copy(preferNrCell = value) }
+    }
+
+var Context.openCellIdToken: String
+    get() = PortalPrefs.readConfig(this).openCellIdToken
+    set(value) {
+        PortalPrefs.updateConfig(this) { it.copy(openCellIdToken = value) }
+    }
+
+var Context.routeMockSpeed: Float
+    get() = PortalPrefs.readConfig(this).routeMockSpeed
+    set(value) {
+        PortalPrefs.updateConfig(this) { it.copy(routeMockSpeed = value) }
+    }
+
+var Context.routeMockSpeedFluctuationEnabled: Boolean
+    get() = PortalPrefs.readConfig(this).routeMockSpeedFluctuationEnabled
+    set(value) {
+        PortalPrefs.updateConfig(this) { it.copy(routeMockSpeedFluctuationEnabled = value) }
+    }
+
+var Context.routeMockStepFrequencyEnabled: Boolean
+    get() = PortalPrefs.readConfig(this).routeMockStepFrequencyEnabled
+    set(value) {
+        PortalPrefs.updateConfig(this) { it.copy(routeMockStepFrequencyEnabled = value) }
+    }
+
+var Context.routeMockLoopEnabled: Boolean
+    get() = PortalPrefs.readConfig(this).routeMockLoopEnabled
+    set(value) {
+        PortalPrefs.updateConfig(this) { it.copy(routeMockLoopEnabled = value) }
+    }
+
+var Context.routeMockLoopCount: Int
+    get() = PortalPrefs.readConfig(this).routeMockLoopCount
+    set(value) {
+        PortalPrefs.updateConfig(this) { it.copy(routeMockLoopCount = value) }
+    }
+
+var Context.routeMockLoopIntervalSeconds: Int
+    get() = PortalPrefs.readConfig(this).routeMockLoopIntervalSeconds
+    set(value) {
+        PortalPrefs.updateConfig(this) { it.copy(routeMockLoopIntervalSeconds = value) }
+    }
+
+var Context.themePresetKey: String
+    get() = PortalPrefs.readConfig(this).themePresetKey
+    set(value) {
+        PortalPrefs.updateConfig(this) { it.copy(themePresetKey = value) }
+    }
+
+val Context.themePreset: ThemePreset
+    get() = ThemePreset.fromKey(themePresetKey)

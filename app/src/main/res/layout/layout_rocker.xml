@@ -23,7 +23,7 @@
         android:layout_marginBottom="8dp"
         app:contentPadding="4dp"
         app:cardCornerRadius="12dp"
-        app:cardBackgroundColor="@color/white"
+        app:cardBackgroundColor="?attr/portalCardColor"
         app:cardElevation="4dp">
         <LinearLayout
             android:layout_width="match_parent"
@@ -64,7 +64,7 @@
                     android:importantForAccessibility="no"
                     android:contentDescription="@string/app_name"
                     android:src="@drawable/baseline_robot_24"
-                    app:tint="#373737"
+                    app:tint="?attr/portalTextColor"
                     app:layout_constraintBottom_toBottomOf="parent"
                     app:layout_constraintEnd_toEndOf="parent"
                     app:layout_constraintStart_toStartOf="parent"
@@ -78,7 +78,7 @@
                     android:importantForAccessibility="no"
                     android:contentDescription="@string/app_name"
                     android:src="@drawable/baseline_control_camera_24"
-                    app:tint="#373737"
+                    app:tint="?attr/portalTextColor"
                     app:layout_constraintEnd_toEndOf="parent"
                     app:layout_constraintTop_toTopOf="parent" />
 
@@ -95,7 +95,7 @@
         android:layout_marginBottom="8dp"
         app:contentPadding="4dp"
         app:cardCornerRadius="12dp"
-        app:cardBackgroundColor="@color/white"
+        app:cardBackgroundColor="?attr/portalCardColor"
         android:layout_gravity="center"
         app:cardElevation="4dp">
         <LinearLayout
@@ -137,7 +137,7 @@
                     android:importantForAccessibility="no"
                     android:contentDescription="@string/app_name"
                     android:src="@drawable/baseline_settings_24"
-                    app:tint="#373737"
+                    app:tint="?attr/portalTextColor"
                     app:layout_constraintBottom_toBottomOf="parent"
                     app:layout_constraintEnd_toEndOf="parent"
                     app:layout_constraintStart_toStartOf="parent"
@@ -161,7 +161,7 @@
                     android:layout_height="16dp"
                     android:importantForAccessibility="no"
                     android:contentDescription="@string/app_name"
-                    android:background="@drawable/baseline_lock_24"
+                    android:src="@drawable/baseline_lock_24"
                     app:layout_constraintEnd_toEndOf="parent"
                     app:layout_constraintTop_toTopOf="parent" />
 
@@ -170,6 +170,7 @@
     </androidx.cardview.widget.CardView>
 
     <androidx.cardview.widget.CardView
+        android:id="@+id/expand_menu_card"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:layout_marginLeft="1dp"
@@ -177,7 +178,7 @@
         android:layout_marginBottom="8dp"
         app:contentPadding="4dp"
         app:cardCornerRadius="4dp"
-        app:cardBackgroundColor="@color/white"
+        app:cardBackgroundColor="?attr/portalCardColor"
         android:visibility="gone"
         app:cardElevation="2dp">
 
@@ -197,6 +198,7 @@
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
                     android:text="@string/rocker_speed"
+                    android:textColor="?attr/portalTextColor"
                     android:textSize="8sp"
                     android:layout_weight="1"
                     android:maxLines="1"
@@ -211,6 +213,7 @@
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
                     android:text="@string/default_speed"
+                    android:textColor="?attr/portalTextColor"
                     android:layout_weight="1"
                     android:textSize="8sp"
                     android:gravity="center|end"
@@ -223,9 +226,9 @@
                     android:id="@+id/speed_slider"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
-                    android:stepSize="5.0"
-                    android:valueFrom="0.0"
-                    android:valueTo="50.0"
+                    android:stepSize="0.5"
+                    android:valueFrom="0.5"
+                    android:valueTo="20.0"
                     app:tickVisible="false"
                     app:thumbElevation="2dp"
                     android:padding="0dp"
@@ -250,3 +253,4 @@
     </androidx.cardview.widget.CardView>
 
 </LinearLayout>
+

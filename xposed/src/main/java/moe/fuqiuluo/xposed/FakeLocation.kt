@@ -7,6 +7,7 @@ import de.robv.android.xposed.XposedHelpers
 import de.robv.android.xposed.callbacks.XC_LoadPackage
 import moe.fuqiuluo.xposed.hooks.LocationManagerHook
 import moe.fuqiuluo.xposed.hooks.LocationServiceHook
+import moe.fuqiuluo.xposed.hooks.BasicLocationHook
 import moe.fuqiuluo.xposed.hooks.fused.AndroidFusedLocationProviderHook
 import moe.fuqiuluo.xposed.hooks.fused.ThirdPartyLocationHook
 import moe.fuqiuluo.xposed.hooks.oplus.OplusLocationHook
@@ -18,6 +19,16 @@ import moe.fuqiuluo.xposed.utils.FakeLoc
 import moe.fuqiuluo.xposed.utils.Logger
 
 class FakeLocation: IXposedHookLoadPackage, IXposedHookZygoteInit {
+    private val targetPackages = setOf(
+        "android",
+        "com.android.phone",
+        "com.android.location.fused",
+        "com.xiaomi.location.fused",
+        "com.oplus.location",
+        "com.tencent.mm",
+        "com.eg.android.AlipayGphone"
+    )
+
     private lateinit var cServiceManager: Class<*> // android.os.ServiceManager
     private val mServiceManagerCache by lazy {
         kotlin.runCatching { cServiceManager.getDeclaredField("sCache") }.onSuccess {
@@ -47,7 +58,7 @@ class FakeLocation: IXposedHookLoadPackage, IXposedHookZygoteInit {
      * @throws Throwable Everything the callback throws is caught and logged.
      */
     override fun handleLoadPackage(lpparam: XC_LoadPackage.LoadPackageParam?) {
-        if (lpparam?.packageName != "android" && lpparam?.packageName != "com.android.phone") {
+        if (lpparam == null || !targetPackages.contains(lpparam.packageName)) {
             return
         }
 
@@ -99,6 +110,19 @@ class FakeLocation: IXposedHookLoadPackage, IXposedHookZygoteInit {
             "com.oplus.location" -> {
                 OplusLocationHook(lpparam.classLoader)
             }
+            "com.tencent.mm" -> {
+                Logger.info("Found com.tencent.mm, install app-process location hooks")
+                // Sync runtime config from system process and install in-process hooks for WeChat.
+                TelephonyHook(lpparam.classLoader)
+                SystemSensorManagerHook(lpparam.classLoader)
+                startAppProcessLocationHook(lpparam.classLoader)
+            }
+            "com.eg.android.AlipayGphone" -> {
+                Logger.info("Found Alipay, install app-process location/sensor hooks")
+                TelephonyHook(lpparam.classLoader)
+                SystemSensorManagerHook(lpparam.classLoader)
+                startAppProcessLocationHook(lpparam.classLoader)
+            }
         }
     }
 
@@ -114,5 +138,16 @@ class FakeLocation: IXposedHookLoadPackage, IXposedHookZygoteInit {
 
         LocationServiceHook(classLoader)
         LocationManagerHook(cLocationManager)  // intrusive hooks
+    }
+
+    private fun startAppProcessLocationHook(classLoader: ClassLoader) {
+        kotlin.runCatching {
+            val cLocationManager = XposedHelpers.findClass("android.location.LocationManager", classLoader)
+            LocationManagerHook(cLocationManager)
+            BasicLocationHook(classLoader)
+            Logger.info("Installed app-process hooks for LocationManager/LocationResult")
+        }.onFailure {
+            Logger.error("Failed to install app-process location hooks", it)
+        }
     }
 }

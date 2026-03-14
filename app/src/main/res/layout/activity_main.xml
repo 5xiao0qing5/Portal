@@ -19,7 +19,10 @@
         android:layout_width="wrap_content"
         android:layout_height="match_parent"
         android:layout_gravity="start"
-        app:itemRippleColor="@color/theme_active"
+        android:theme="@style/Portal.NavigationViewTheme"
+        app:itemRippleColor="@color/portal_nav_item_tint"
+        app:itemIconTint="@color/portal_nav_item_tint"
+        app:itemTextColor="@color/portal_nav_item_tint"
         app:headerLayout="@layout/nav_header_main"
         app:menu="@menu/activity_main_drawer" />
 

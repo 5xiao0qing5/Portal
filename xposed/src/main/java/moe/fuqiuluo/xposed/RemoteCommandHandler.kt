@@ -6,6 +6,7 @@ import android.os.IBinder
 import android.os.Parcel
 import moe.fuqiuluo.dobby.Dobby
 import moe.fuqiuluo.xposed.hooks.LocationServiceHook
+import moe.fuqiuluo.xposed.utils.CellMockConfig
 import moe.fuqiuluo.xposed.utils.FakeLoc
 import moe.fuqiuluo.xposed.utils.BinderUtils
 import moe.fuqiuluo.xposed.utils.Logger
@@ -14,9 +15,32 @@ import kotlin.random.Random
 
 object RemoteCommandHandler {
     private val proxyBinders by lazy { Collections.synchronizedList(arrayListOf<IBinder>()) }
-    private val needProxyCmd = arrayOf("start", "stop", "set_speed_amp", "set_altitude", "set_speed", "update_location", "set_bearing", "move", "put_config")
+    private val needProxyCmd = arrayOf(
+        "start",
+        "stop",
+        "clear_motion",
+        "set_speed_amp",
+        "set_altitude",
+        "set_speed",
+        "update_location",
+        "set_bearing",
+        "move",
+        "put_config",
+        "set_cell_config"
+    )
     internal val randomKey by lazy { "portal_" + Random.nextDouble() }
     private var isLoadedLibrary = false
+
+    private fun updateNativeSensorHookState() {
+        if (isLoadedLibrary) {
+            if (FakeLoc.enableDebugLog) {
+                Logger.debug(
+                    "stepNativeHook enabled=${FakeLoc.enable && FakeLoc.enableSensorMock} mock=${FakeLoc.enable} sensorMock=${FakeLoc.enableSensorMock} moving=${FakeLoc.sensorMotionActive}"
+                )
+            }
+            Dobby.setStatus(FakeLoc.enable && FakeLoc.enableSensorMock)
+        }
+    }
 
     @SuppressLint("UnsafeDynamicallyLoadedCode")
     fun handleInstruction(command: String, rely: Bundle): Boolean {
@@ -67,9 +91,11 @@ object RemoteCommandHandler {
                 val accuracy = rely.getFloat("accuracy", FakeLoc.accuracy)
 
                 FakeLoc.enable = true
-                if (isLoadedLibrary) {
-                    Dobby.setStatus(true)
-                }
+                FakeLoc.sensorMotionActive = false
+                FakeLoc.simulatedDistanceMeters = 0.0
+                FakeLoc.simulatedStepCount = 0.0
+                FakeLoc.lastEstimatedStepLengthMeters = FakeLoc.estimateStepLengthMeters(speed)
+                updateNativeSensorHookState()
 
                 FakeLoc.speed = speed
                 FakeLoc.altitude = altitude
@@ -80,8 +106,15 @@ object RemoteCommandHandler {
             "stop" -> {
                 FakeLoc.enable = false
                 FakeLoc.hasBearings = false
-                if (isLoadedLibrary) {
-                    Dobby.setStatus(false)
+                FakeLoc.sensorMotionActive = false
+                updateNativeSensorHookState()
+                return true
+            }
+            "clear_motion" -> {
+                FakeLoc.hasBearings = false
+                FakeLoc.sensorMotionActive = false
+                if (FakeLoc.enableDebugLog) {
+                    Logger.debug("clear_motion -> hasBearings=false sensorMotionActive=false")
                 }
                 return true
             }
@@ -147,18 +180,35 @@ object RemoteCommandHandler {
             "set_speed" -> {
                 val speed = rely.getDouble("speed", 0.0)
                 FakeLoc.speed = speed
+                if (FakeLoc.enableDebugLog) {
+                    Logger.debug("set_speed -> speed=$speed")
+                }
                 return true
             }
             "set_bearing" -> {
                 val bearing = rely.getDouble("bearing", 0.0)
                 FakeLoc.bearing = bearing
                 FakeLoc.hasBearings = true
+                FakeLoc.sensorMotionActive = true
+                if (FakeLoc.enableDebugLog) {
+                    Logger.debug("stepMotion set_bearing bearing=$bearing moving=true")
+                }
                 return true
             }
             "move" -> {
                 val distance = rely.getDouble("n", 0.0)
                 if (distance == 0.0) return true
                 val bearing = rely.getDouble("bearing", 0.0)
+                FakeLoc.sensorMotionActive = true
+                val stepLengthMeters = FakeLoc.estimateStepLengthMeters(FakeLoc.speed)
+                FakeLoc.lastEstimatedStepLengthMeters = stepLengthMeters
+                FakeLoc.simulatedDistanceMeters += distance
+                FakeLoc.simulatedStepCount += distance / stepLengthMeters
+                if (FakeLoc.enableDebugLog) {
+                    Logger.debug("move command distance=$distance bearing=$bearing current=${FakeLoc.latitude},${FakeLoc.longitude}")
+                    Logger.debug("stepMotion move distance=$distance bearing=$bearing moving=true")
+                    Logger.debug("stepStats distance=${FakeLoc.simulatedDistanceMeters} steps=${FakeLoc.simulatedStepCount} stepLength=$stepLengthMeters")
+                }
                 val newLoc = FakeLoc.moveLocation(
                     n = distance,
                     angle = bearing
@@ -168,7 +218,7 @@ object RemoteCommandHandler {
                 }
                 FakeLoc.bearing = bearing
                 FakeLoc.hasBearings = true
-                return updateCoordinate(newLoc.first, newLoc.second).also {
+                return updateCoordinate(newLoc.first, newLoc.second, resetMotion = false).also {
                     if (FakeLoc.isSystemServerProcess) LocationServiceHook.callOnLocationChanged()
                 }
             }
@@ -226,6 +276,8 @@ object RemoteCommandHandler {
 
                 val enableAGPS = rely.getBoolean("enable_agps", FakeLoc.enableAGPS)
                 val enableNMEA = rely.getBoolean("enable_nmea", FakeLoc.enableNMEA)
+                val enableSensorMock = rely.getBoolean("hook_sensor", FakeLoc.enableSensorMock)
+                val stableStaticLocation = rely.getBoolean("stable_static_location", FakeLoc.stableStaticLocation)
                 val disableRequestGeofence = rely.getBoolean("disable_request_geofence", FakeLoc.disableRequestGeofence)
                 val disableGetFromLocation = rely.getBoolean("disable_get_from_location", FakeLoc.disableGetFromLocation)
 
@@ -241,8 +293,31 @@ object RemoteCommandHandler {
                 FakeLoc.minSatellites = minSatellites
                 FakeLoc.enableAGPS = enableAGPS
                 FakeLoc.enableNMEA = enableNMEA
+                FakeLoc.enableSensorMock = enableSensorMock
+                FakeLoc.stableStaticLocation = stableStaticLocation
                 FakeLoc.disableRequestGeofence = disableRequestGeofence
                 FakeLoc.disableGetFromLocation = disableGetFromLocation
+                FakeLoc.cellConfig = CellMockConfig.from(rely, FakeLoc.cellConfig)
+                updateNativeSensorHookState()
+                if (FakeLoc.enableDebugLog) {
+                    Logger.debug("put_config enable=$enable speed=$speed altitude=$altitude accuracy=$accuracy stableStatic=$stableStaticLocation hookSensor=$enableSensorMock speedAmp=${FakeLoc.speedAmplitude}")
+                }
+                if (FakeLoc.enableDebugLog) {
+                    Logger.debug(
+                        "put_config cell: enabled=${FakeLoc.cellConfig.enabled}, mcc=${FakeLoc.cellConfig.mcc}, mnc=${FakeLoc.cellConfig.mnc}, " +
+                            "lteTac=${FakeLoc.cellConfig.lteTac}, lteEci=${FakeLoc.cellConfig.lteEci}, nrNci=${FakeLoc.cellConfig.nrNci}"
+                    )
+                }
+                return true
+            }
+            "set_cell_config" -> {
+                FakeLoc.cellConfig = CellMockConfig.from(rely, FakeLoc.cellConfig).apply {
+                    enabled = true
+                }
+                Logger.info(
+                    "set_cell_config: enabled=${FakeLoc.cellConfig.enabled}, mcc=${FakeLoc.cellConfig.mcc}, mnc=${FakeLoc.cellConfig.mnc}, " +
+                        "lteTac=${FakeLoc.cellConfig.lteTac}, lteEci=${FakeLoc.cellConfig.lteEci}, nrNci=${FakeLoc.cellConfig.nrNci}"
+                )
                 return true
             }
             "sync_config" -> {
@@ -262,9 +337,25 @@ object RemoteCommandHandler {
                 rely.putBoolean("disable_fused_location", FakeLoc.disableFusedLocation)
                 rely.putBoolean("enable_agps", FakeLoc.enableAGPS)
                 rely.putBoolean("enable_nmea", FakeLoc.enableNMEA)
+                rely.putBoolean("hook_sensor", FakeLoc.enableSensorMock)
+                rely.putBoolean("sensor_motion_active", FakeLoc.sensorMotionActive)
+                rely.putDouble("simulated_distance_meters", FakeLoc.simulatedDistanceMeters)
+                rely.putDouble("simulated_step_count", FakeLoc.simulatedStepCount)
+                rely.putDouble("estimated_step_length_meters", FakeLoc.lastEstimatedStepLengthMeters)
+                rely.putBoolean("stable_static_location", FakeLoc.stableStaticLocation)
                 rely.putBoolean("hide_mock", FakeLoc.hideMock)
                 rely.putBoolean("hook_wifi", FakeLoc.hookWifi)
                 rely.putBoolean("need_downgrade_to_2g", FakeLoc.needDowngradeToCdma)
+                FakeLoc.cellConfig.writeTo(rely)
+                return true
+            }
+            "get_step_stats" -> {
+                rely.putDouble("simulated_distance_meters", FakeLoc.simulatedDistanceMeters)
+                rely.putDouble("simulated_step_count", FakeLoc.simulatedStepCount)
+                rely.putDouble("estimated_step_length_meters", FakeLoc.lastEstimatedStepLengthMeters)
+                rely.putBoolean("sensor_motion_active", FakeLoc.sensorMotionActive)
+                rely.putBoolean("enable_sensor_mock", FakeLoc.enableSensorMock)
+                rely.putBoolean("enable_mock", FakeLoc.enable)
                 return true
             }
             "broadcast_location" -> {
@@ -287,9 +378,7 @@ object RemoteCommandHandler {
                     rely.putString("result", it.stackTraceToString())
                 }
 
-                if (isLoadedLibrary) {
-                    Dobby.setStatus(FakeLoc.enable)
-                }
+                updateNativeSensorHookState()
 
                 return true
             }
@@ -317,10 +406,14 @@ object RemoteCommandHandler {
 //        return LocationServiceProxyHook.injectLocation(location, realLocation)
 //    }
 
-    private fun updateCoordinate(newLat: Double, newLon: Double): Boolean {
+    private fun updateCoordinate(newLat: Double, newLon: Double, resetMotion: Boolean = true): Boolean {
         if (newLat in -90.0..90.0 && newLon in -180.0..180.0) {
             FakeLoc.latitude = newLat
             FakeLoc.longitude = newLon
+            if (resetMotion) {
+                FakeLoc.hasBearings = false
+                FakeLoc.sensorMotionActive = false
+            }
             return true
         } else {
             Logger.error("Invalid latitude or longitude: $newLat, $newLon")

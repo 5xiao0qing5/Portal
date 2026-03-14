@@ -1,16 +1,14 @@
-package moe.fuqiuluo.portal.ui.settings
+﻿package moe.fuqiuluo.portal.ui.settings
 
 import android.annotation.SuppressLint
 import android.os.Bundle
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
-import android.widget.CompoundButton
 import android.widget.TextView
 import android.widget.Toast
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.activityViewModels
-import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.lifecycleScope
 import com.google.android.material.dialog.MaterialAlertDialogBuilder
 import com.google.android.material.textfield.TextInputEditText
@@ -18,24 +16,10 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import moe.fuqiuluo.portal.R
 import moe.fuqiuluo.portal.databinding.FragmentSettingsBinding
-import moe.fuqiuluo.portal.ext.accuracy
-import moe.fuqiuluo.portal.ext.altitude
-import moe.fuqiuluo.portal.ext.debug
-import moe.fuqiuluo.portal.ext.disableFusedProvider
-import moe.fuqiuluo.portal.ext.disableGetCurrentLocation
-import moe.fuqiuluo.portal.ext.disableRegisterLocationListener
-import moe.fuqiuluo.portal.ext.disableWifiScan
-import moe.fuqiuluo.portal.ext.hookSensor
-import moe.fuqiuluo.portal.ext.loopBroadcastlocation
-import moe.fuqiuluo.portal.ext.minSatelliteCount
-import moe.fuqiuluo.portal.ext.needDowngradeToCdma
-import moe.fuqiuluo.portal.ext.needOpenSELinux
-import moe.fuqiuluo.portal.ext.reportDuration
-import moe.fuqiuluo.portal.ext.speed
+import moe.fuqiuluo.portal.ext.PortalPrefs
 import moe.fuqiuluo.portal.service.MockServiceHelper
+import moe.fuqiuluo.portal.ui.theme.ThemePreset
 import moe.fuqiuluo.portal.ui.viewmodel.MockServiceViewModel
-import moe.fuqiuluo.portal.ui.viewmodel.SettingsViewModel
-import kotlin.getValue
 
 class SettingsFragment : Fragment() {
     private var _binding: FragmentSettingsBinding? = null
@@ -49,206 +33,196 @@ class SettingsFragment : Fragment() {
         container: ViewGroup?,
         savedInstanceState: Bundle?
     ): View {
-        val settingsViewModel =
-            ViewModelProvider(this)[SettingsViewModel::class.java]
-
         _binding = FragmentSettingsBinding.inflate(inflater, container, false)
-        val root: View = binding.root
+        bindUi()
+        bindActions()
+        return binding.root
+    }
 
-        val context = requireContext()
-        binding.selinuxSwitch.isChecked = context.needOpenSELinux
-        binding.selinuxSwitch.setOnCheckedChangeListener(object: CompoundButton.OnCheckedChangeListener {
-            override fun onCheckedChanged(
-                buttonView: CompoundButton?,
-                isChecked: Boolean
-            ) {
-                context.needOpenSELinux = isChecked
-                showToast(if (isChecked) "已开启SELinux" else "已关闭SELinux")
-            }
-        })
+    private fun bindUi() {
+        val config = PortalPrefs.readConfig(requireContext())
+        binding.altitudeValue.text = "%.2f 米".format(config.altitude)
+        binding.accuracyValue.text = "%.2f 米".format(config.accuracy)
+        binding.themePresetValue.text = getString(ThemePreset.fromKey(config.themePresetKey).titleRes)
+        binding.reportDurationValue.text = "${config.reportDuration}ms"
+        binding.satelliteCountValue.text = "${config.minSatelliteCount} 颗"
 
-        binding.altitudeValue.text = "%.2f米".format(context.altitude)
-        binding.speedValue.text = "%.2f米/秒".format(context.speed)
-        binding.accuracyValue.text = "%.2f米".format(context.accuracy)
-        binding.reportDurationValue.text = "%dms".format(context.reportDuration)
-        binding.satelliteCountValue.text = "%d颗".format(context.minSatelliteCount)
+        binding.selinuxSwitch.isChecked = config.needOpenSELinux
+        binding.stableStaticLocationSwitch.isChecked = config.stableStaticLocation
+        binding.debugSwitch.isChecked = config.debug
+        binding.dgcSwitch.isChecked = config.disableGetCurrentLocation
+        binding.rllSwitch.isChecked = config.disableRegisterLocationListener
+        binding.dfusedSwitch.isChecked = config.disableFusedProvider
+        binding.cdmaSwitch.isChecked = config.needDowngradeToCdma
+        binding.cellMockSwitch.isChecked = config.enableCellMock
+        binding.sensorHookSwitch.isChecked = config.hookSensor
+        binding.disableWlanScanSwitch.isChecked = config.disableWifiScan
+        binding.loopBroadcastLocationSwitch.isChecked = config.loopBroadcastLocation
+    }
 
-        binding.altitudeLayout.setOnClickListener {
-            showDialog("设置海拔高度", binding.altitudeValue.text.toString().let { it.substring(0, it.length - 1) }) {
-                val value = it.toDoubleOrNull()
-                if (value == null || value < 0.0) {
-                    showToast("海拔高度不合法")
-                    return@showDialog
-                } else if (value > 10000) {
-                    showToast("海拔高度不能超过10000米")
-                    return@showDialog
-                }
-                context.altitude = value
-                binding.altitudeValue.text = "%.2f米".format(value)
-            }
+    private fun bindActions() {
+        binding.selinuxSwitch.setOnCheckedChangeListener { _, isChecked ->
+            updateConfig { it.copy(needOpenSELinux = isChecked) }
+            showToast(if (isChecked) "已开启 SELinux" else "已关闭 SELinux")
         }
 
-        binding.speedLayout.setOnClickListener {
-            showDialog("设置速度", binding.speedValue.text.toString().let { it.substring(0, it.length - 3) }) {
-                val value = it.toDoubleOrNull()
-                if (value == null || value < 0.0) {
-                    showToast("速度不合法")
-                    return@showDialog
-                } else if (value > 1000) {
-                    showToast("速度不能超过1000米/秒")
-                    return@showDialog
+        binding.altitudeLayout.setOnClickListener {
+            val config = PortalPrefs.readConfig(requireContext())
+            showDialog("设置模拟海拔", config.altitude.toString()) { input ->
+                val value = input.toDoubleOrNull()
+                when {
+                    value == null || value < 0.0 -> showToast("海拔高度不合法")
+                    value > 10000.0 -> showToast("海拔高度不能超过 10000 米")
+                    else -> {
+                        updateConfig { it.copy(altitude = value) }
+                        binding.altitudeValue.text = "%.2f 米".format(value)
+                        updateRemoteConfig()
+                    }
                 }
-                context.speed = value
-                binding.speedValue.text = "%.2f米/秒".format(value)
             }
         }
 
         binding.accuracyLayout.setOnClickListener {
-            showDialog("设置精度", binding.accuracyValue.text.toString().let { it.substring(0, it.length - 1) }) {
-                val value = it.toFloatOrNull()
-                if (value == null || value < 0.0) {
-                    Toast.makeText(context, "精度不合法", Toast.LENGTH_SHORT).show()
-                    return@showDialog
-                } else if (value > 1000) {
-                    Toast.makeText(context, "精度不能超过1000米", Toast.LENGTH_SHORT).show()
-                    return@showDialog
+            val config = PortalPrefs.readConfig(requireContext())
+            showDialog("设置定位精度", config.accuracy.toString()) { input ->
+                val value = input.toFloatOrNull()
+                when {
+                    value == null || value < 0f -> showToast("定位精度不合法")
+                    value > 1000f -> showToast("定位精度不能超过 1000 米")
+                    else -> {
+                        updateConfig { it.copy(accuracy = value) }
+                        binding.accuracyValue.text = "%.2f 米".format(value)
+                        updateRemoteConfig()
+                    }
                 }
-                context.accuracy = value
-                binding.accuracyValue.text = "%.2f米".format(value)
             }
         }
 
-        binding.debugSwitch.isChecked = context.debug
-        binding.debugSwitch.setOnCheckedChangeListener(object: CompoundButton.OnCheckedChangeListener {
-            override fun onCheckedChanged(
-                buttonView: CompoundButton?,
-                isChecked: Boolean
-            ) {
-                context.debug = isChecked
-                showToast(if (isChecked) "已开启调试模式" else "已关闭调试模式")
-                updateRemoteConfig()
-            }
-        })
+        binding.themePresetLayout.setOnClickListener {
+            val context = requireContext()
+            val presets = ThemePreset.entries.toList()
+            val labels = presets.map { getString(it.titleRes) }.toTypedArray()
+            val current = ThemePreset.fromKey(PortalPrefs.readConfig(context).themePresetKey)
+            val checkedIndex = presets.indexOf(current).coerceAtLeast(0)
+            MaterialAlertDialogBuilder(context)
+                .setTitle(R.string.theme_preset)
+                .setSingleChoiceItems(labels, checkedIndex) { dialog, which ->
+                    val preset = presets[which]
+                    updateConfig { it.copy(themePresetKey = preset.key) }
+                    binding.themePresetValue.text = labels[which]
+                    dialog.dismiss()
+                    requireActivity().recreate()
+                }
+                .setNegativeButton("取消", null)
+                .show()
+        }
 
-        binding.dgcSwitch.isChecked = !context.disableGetCurrentLocation
-        binding.dgcSwitch.setOnCheckedChangeListener(object: CompoundButton.OnCheckedChangeListener {
-            override fun onCheckedChanged(
-                buttonView: CompoundButton?,
-                isChecked: Boolean
-            ) {
-                context.disableGetCurrentLocation = !isChecked
-                showToast(if (!isChecked) "禁止应用使用该方法" else "已允许应用使用该方法")
-                updateRemoteConfig()
-            }
-        })
+        binding.stableStaticLocationSwitch.setOnCheckedChangeListener { _, isChecked ->
+            updateConfig { it.copy(stableStaticLocation = isChecked) }
+            updateRemoteConfig()
+            showToast(if (isChecked) "已开启静止定位稳定模式" else "已关闭静止定位稳定模式")
+        }
 
-        binding.rllSwitch.isChecked = !context.disableRegisterLocationListener
-        binding.rllSwitch.setOnCheckedChangeListener(object: CompoundButton.OnCheckedChangeListener {
-            override fun onCheckedChanged(
-                buttonView: CompoundButton?,
-                isChecked: Boolean
-            ) {
-                context.disableRegisterLocationListener = !isChecked
-                showToast(if (!isChecked) "禁止应用使用该方法" else "已允许应用使用该方法")
-                updateRemoteConfig()
-            }
-        })
+        binding.debugSwitch.setOnCheckedChangeListener { _, isChecked ->
+            updateConfig { it.copy(debug = isChecked) }
+            updateRemoteConfig()
+            showToast(if (isChecked) "已开启调试模式" else "已关闭调试模式")
+        }
 
-        binding.dfusedSwitch.isChecked = context.disableFusedProvider
-        binding.dfusedSwitch.setOnCheckedChangeListener(object: CompoundButton.OnCheckedChangeListener {
-            override fun onCheckedChanged(
-                buttonView: CompoundButton?,
-                isChecked: Boolean
-            ) {
-                context.disableFusedProvider = isChecked
-                showToast(if (isChecked) "已禁用FusedProvider" else "已启用FusedProvider")
-                updateRemoteConfig()
-            }
-        })
+        binding.dgcSwitch.setOnCheckedChangeListener { _, isChecked ->
+            updateConfig { it.copy(disableGetCurrentLocation = isChecked) }
+            updateRemoteConfig()
+            showToast(if (isChecked) "已禁用 getCurrentLocation" else "已允许 getCurrentLocation")
+        }
 
-        binding.cdmaSwitch.isChecked = context.needDowngradeToCdma
-        binding.cdmaSwitch.setOnCheckedChangeListener(object: CompoundButton.OnCheckedChangeListener {
-            override fun onCheckedChanged(
-                buttonView: CompoundButton?,
-                isChecked: Boolean
-            ) {
-                context.needDowngradeToCdma = isChecked
-                showToast(if (isChecked) "已降级为CDMA" else "已取消降级为CDMA")
-                updateRemoteConfig()
-            }
-        })
+        binding.rllSwitch.setOnCheckedChangeListener { _, isChecked ->
+            updateConfig { it.copy(disableRegisterLocationListener = isChecked) }
+            updateRemoteConfig()
+            showToast(if (isChecked) "已禁用注册定位监听" else "已允许注册定位监听")
+        }
 
-        binding.sensorHookSwitch.isChecked = context.hookSensor
-        binding.sensorHookSwitch.setOnCheckedChangeListener(object: CompoundButton.OnCheckedChangeListener {
-            override fun onCheckedChanged(
-                buttonView: CompoundButton?,
-                isChecked: Boolean
-            ) {
-                context.hookSensor = isChecked
-                showToast("重新启动生效")
-                updateRemoteConfig()
-            }
-        })
+        binding.dfusedSwitch.setOnCheckedChangeListener { _, isChecked ->
+            updateConfig { it.copy(disableFusedProvider = isChecked) }
+            updateRemoteConfig()
+            showToast(if (isChecked) "已禁用 Fused 定位" else "已启用 Fused 定位")
+        }
+
+        binding.cdmaSwitch.setOnCheckedChangeListener { _, isChecked ->
+            updateConfig { it.copy(needDowngradeToCdma = isChecked) }
+            updateRemoteConfig()
+            showToast(if (isChecked) "已开启网络降级" else "已关闭网络降级")
+        }
+
+        binding.cellMockSwitch.setOnCheckedChangeListener { _, isChecked ->
+            updateConfig { it.copy(enableCellMock = isChecked) }
+            updateRemoteConfig()
+            showToast(if (isChecked) "已开启基站模拟" else "已关闭基站模拟")
+        }
+
+        binding.sensorHookSwitch.setOnCheckedChangeListener { _, isChecked ->
+            updateConfig { it.copy(hookSensor = isChecked) }
+            updateRemoteConfig()
+            showToast("请重新启动模拟后生效")
+        }
 
         binding.reportDurationLayout.setOnClickListener {
-            showDialog("设置上报间隔", binding.reportDurationValue.text.toString().let {
-                it.substring(0, it.length - 2)
-            }) {
-                val value = it.toIntOrNull()
-                if (value == null || value < 0) {
-                    Toast.makeText(context, "上报间隔不合法", Toast.LENGTH_SHORT).show()
-                    return@showDialog
-                } else if (value > 1000) {
-                    Toast.makeText(context, "上报间隔不能大于1s", Toast.LENGTH_SHORT).show()
-                    return@showDialog
+            val config = PortalPrefs.readConfig(requireContext())
+            showDialog("设置位置上报间隔", config.reportDuration.toString()) { input ->
+                val value = input.toIntOrNull()
+                when {
+                    value == null || value < 1 -> showToast("上报间隔不合法")
+                    value > 1000 -> showToast("上报间隔不能大于 1000ms")
+                    else -> {
+                        updateConfig { it.copy(reportDuration = value) }
+                        binding.reportDurationValue.text = "${value}ms"
+                        showToast("已保存位置上报间隔")
+                    }
                 }
-                context.reportDuration = value
-                binding.reportDurationValue.text = "%dms".format(value)
-                showToast("重新启动APP生效")
             }
         }
 
         binding.satelliteCountLayout.setOnClickListener {
-            showDialog("设置最小模拟卫星数量", binding.satelliteCountValue.text.toString().let {
-                it.substring(0, it.length - 1)
-            }) {
-                val value = it.toIntOrNull()
-                if (value == null || value < 0) {
-                    Toast.makeText(context, "数量不合法", Toast.LENGTH_SHORT).show()
-                    return@showDialog
-                } else if (value > 35) {
-                    Toast.makeText(context, "卫星数量不能超过35", Toast.LENGTH_SHORT).show()
-                    return@showDialog
+            val config = PortalPrefs.readConfig(requireContext())
+            showDialog("设置最小模拟卫星数量", config.minSatelliteCount.toString()) { input ->
+                val value = input.toIntOrNull()
+                when {
+                    value == null || value < 0 -> showToast("卫星数量不合法")
+                    value > 35 -> showToast("卫星数量不能超过 35")
+                    else -> {
+                        updateConfig { it.copy(minSatelliteCount = value) }
+                        binding.satelliteCountValue.text = "${value} 颗"
+                        updateRemoteConfig()
+                        showToast("已同步最小模拟卫星数量")
+                    }
                 }
-                context.minSatelliteCount = value
-                binding.satelliteCountValue.text = "%d颗".format(value)
-                showToast("重新启动模拟生效")
-                updateRemoteConfig()
             }
         }
 
-        binding.disableWlanScanSwitch.isChecked = requireContext().disableWifiScan
         binding.disableWlanScanSwitch.setOnCheckedChangeListener { _, isChecked ->
-            requireContext().disableWifiScan = isChecked
-            with(mockServiceViewModel) {
-                if (isChecked) {
-                    if(!MockServiceHelper.startWifiMock(locationManager!!)) {
-                        showToast("禁用WLAN扫描失败: 无法连接到系统服务")
-                    }
-                } else {
-                    if(!MockServiceHelper.stopWifiMock(locationManager!!)) {
-                        showToast("启用WLAN扫描失败: 无法连接到系统服务")
-                    }
-                }
+            updateConfig { it.copy(disableWifiScan = isChecked) }
+            val locationManager = mockServiceViewModel.locationManager
+            if (locationManager == null) {
+                showToast("系统服务未初始化")
+                return@setOnCheckedChangeListener
+            }
+            val success = if (isChecked) {
+                MockServiceHelper.startWifiMock(locationManager)
+            } else {
+                MockServiceHelper.stopWifiMock(locationManager)
+            }
+            if (!success) {
+                showToast(if (isChecked) "禁用 WLAN 扫描失败" else "恢复 WLAN 扫描失败")
             }
         }
 
-        binding.loopBroadcastLocationSwitch.isChecked = requireContext().loopBroadcastlocation
         binding.loopBroadcastLocationSwitch.setOnCheckedChangeListener { _, isChecked ->
-            requireContext().loopBroadcastlocation = isChecked
-            showToast("重启模拟生效")
+            updateConfig { it.copy(loopBroadcastLocation = isChecked) }
+            showToast(if (isChecked) "已开启反定位拉回" else "已关闭反定位拉回")
         }
-        return root
+    }
+
+    private fun updateConfig(transform: (moe.fuqiuluo.portal.ext.PortalConfig) -> moe.fuqiuluo.portal.ext.PortalConfig) {
+        PortalPrefs.updateConfig(requireContext(), transform)
     }
 
     private fun showToast(message: String) {
@@ -258,34 +232,27 @@ class SettingsFragment : Fragment() {
     }
 
     private fun updateRemoteConfig() {
-        val context = requireContext()
-        with(mockServiceViewModel) {
-            if(!MockServiceHelper.putConfig(locationManager!!, context)) {
-                showToast("更新远程配置失败")
-            } else {
-                showToast("同步配置成功")
-            }
+        val locationManager = mockServiceViewModel.locationManager
+        if (locationManager == null) {
+            showToast("系统服务未初始化")
+            return
+        }
+        if (!MockServiceHelper.putConfig(locationManager, requireContext())) {
+            showToast("同步远程配置失败")
         }
     }
 
-    @SuppressLint("MissingInflatedId")
     private fun showDialog(titleText: String, valueText: String, handler: (String) -> Unit) {
-        val inflater = LayoutInflater.from(requireContext())
-        val dialogView = inflater.inflate(R.layout.dialog_input, null)
-
-        val title = dialogView.findViewById<TextView>(R.id.title)
-        title.text = titleText
-
+        val dialogView = LayoutInflater.from(requireContext()).inflate(R.layout.dialog_input, null)
+        dialogView.findViewById<TextView>(R.id.title).text = titleText
         val value = dialogView.findViewById<TextInputEditText>(R.id.value)
         value.setText(valueText)
 
-        val builder = MaterialAlertDialogBuilder(requireContext())
-        builder.setTitle(null)
-        builder
+        MaterialAlertDialogBuilder(requireContext())
             .setCancelable(false)
             .setView(dialogView)
             .setPositiveButton("保存") { _, _ ->
-                handler(value.text.toString())
+                handler(value.text?.toString().orEmpty())
             }
             .setNegativeButton("取消", null)
             .show()

@@ -20,6 +20,7 @@
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:text=""
+            android:textColor="?attr/portalTextColor"
             android:textSize="20sp" />
 
         <LinearLayout
@@ -30,7 +31,8 @@
                 android:id="@+id/poi_address"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:text="" />
+                android:text=""
+                android:textColor="?attr/portalTextSecondaryColor" />
 
             <TextView
                 android:id="@+id/poi_longitude"
@@ -38,6 +40,7 @@
                 android:layout_height="wrap_content"
                 android:layout_marginStart="10dp"
                 android:text=""
+                android:textColor="?attr/portalTextSecondaryColor"
                 android:visibility="gone"/>
 
             <TextView
@@ -46,6 +49,7 @@
                 android:layout_height="wrap_content"
                 android:layout_marginStart="10dp"
                 android:text=""
+                android:textColor="?attr/portalTextSecondaryColor"
                 android:visibility="gone"/>
 
             <TextView
@@ -53,7 +57,8 @@
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:layout_marginStart="10dp"
-                android:text="" />
+                android:text=""
+                android:textColor="?attr/portalTextSecondaryColor" />
         </LinearLayout>
 
     </LinearLayout>

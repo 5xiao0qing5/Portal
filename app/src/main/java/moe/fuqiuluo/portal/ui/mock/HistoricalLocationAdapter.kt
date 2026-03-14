@@ -32,6 +32,12 @@ class HistoricalLocationAdapter(
         return removed
     }
 
+    fun replaceAll(locations: List<HistoricalLocation>) {
+        dataSet.clear()
+        dataSet.addAll(locations)
+        notifyDataSetChanged()
+    }
+
     /**
      * Called when RecyclerView needs a new [ViewHolder] of the given type to represent
      * an item.

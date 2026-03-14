@@ -16,7 +16,7 @@
             android:layout_height="wrap_content"
             android:orientation="vertical">
 
-            <!-- 原有的卫星信息卡片 -->
+            <!-- 闂備礁鎲￠…鍥窗閹邦剨鑰垮〒姘ｅ亾闁诡垰鍟村畷鐔碱敃閵忋倕鏁归梻浣告惈鐎氼噣宕板鍡欌攳濠电姴娲ょ粻鎺撱亜閺嶃劏澹樻鐐灲閺?-->
             <androidx.cardview.widget.CardView
                 android:id="@+id/mock_gnss_card"
                 android:layout_width="match_parent"
@@ -34,11 +34,11 @@
                     <TextView
                         android:layout_width="match_parent"
                         android:layout_height="wrap_content"
-                        android:textColor="@color/portal_mini_title_color"
+                        android:textColor="?attr/portalMiniTitleColor"
                         android:textAppearance="@style/TextAppearance.AppCompat.Inverse"
                         android:text="@string/satellites_info"/>
 
-                    <!-- 原有的卫星信息部分 -->
+                    <!-- 闂備礁鎲￠…鍥窗閹邦剨鑰垮〒姘ｅ亾闁诡垰鍟村畷鐔碱敃閵忋倕鏁归梻浣告惈鐎氼噣宕板鍡欌攳濠电姴娲ょ粻鎺撱亜閺嶎偄浠滈柛鏂诲劦閺?-->
                     <androidx.constraintlayout.widget.ConstraintLayout
                         android:layout_width="match_parent"
                         android:layout_height="wrap_content"
@@ -70,7 +70,7 @@
                                 android:visibility="gone"
                                 android:layout_width="match_parent"
                                 android:layout_height="wrap_content"
-                                android:text="卫星信息"
+                                android:text="@string/satellites_info"
                                 android:gravity="center" />
 
                             <androidx.constraintlayout.widget.ConstraintLayout
@@ -98,7 +98,7 @@
                                     android:layout_height="wrap_content"
                                     android:text="@string/zero"
                                     android:gravity="center"
-                                    android:textColor="@color/black"
+                                    android:textColor="?attr/portalTextColor"
                                     android:textStyle="bold"
                                     android:textSize="10sp"
                                     app:layout_constraintHorizontal_weight="1"
@@ -133,7 +133,7 @@
                                     android:layout_height="wrap_content"
                                     android:text="@string/zero"
                                     android:gravity="center"
-                                    android:textColor="@color/black"
+                                    android:textColor="?attr/portalTextColor"
                                     android:textStyle="bold"
                                     android:textSize="10sp"
                                     app:layout_constraintHorizontal_weight="1"
@@ -152,7 +152,7 @@
                                     android:id="@+id/signal_strength_left_item"
                                     android:layout_width="0dp"
                                     android:layout_height="wrap_content"
-                                    android:text="平均信号强度"
+                                    android:text="@string/gnss_avg_signal"
                                     android:gravity="center"
                                     android:textStyle="bold"
                                     android:textSize="10sp"
@@ -168,7 +168,7 @@
                                     android:layout_height="wrap_content"
                                     android:text="0 dB-Hz"
                                     android:gravity="center"
-                                    android:textColor="@color/black"
+                                    android:textColor="?attr/portalTextColor"
                                     android:textStyle="bold"
                                     android:textSize="10sp"
                                     app:layout_constraintHorizontal_weight="1"
@@ -194,7 +194,7 @@
                                     <TextView
                                         android:layout_width="match_parent"
                                         android:layout_height="wrap_content"
-                                        android:text="选中卫星详情"
+                                        android:text="@string/gnss_selected_satellite"
                                         android:gravity="center"
                                         android:textStyle="bold"
                                         android:textSize="10sp"/>
@@ -210,21 +210,21 @@
                                         android:id="@+id/selected_satellite_snr"
                                         android:layout_width="match_parent"
                                         android:layout_height="wrap_content"
-                                        android:text="信号强度: -- dB-Hz"
+                                        android:text="濠电儑绲藉ú鐘诲焵椤掆偓閸熸寧绻涢崶鈹惧亾濞堝灝鏋涢柟纰卞亞閳? -- dB-Hz"
                                         android:textSize="9sp"/>
 
                                     <TextView
                                         android:id="@+id/selected_satellite_elevation"
                                         android:layout_width="match_parent"
                                         android:layout_height="wrap_content"
-                                        android:text="仰角: -- 度"
+                                        android:text="@string/gnss_elevation"
                                         android:textSize="9sp"/>
 
                                     <TextView
                                         android:id="@+id/selected_satellite_azimuth"
                                         android:layout_width="match_parent"
                                         android:layout_height="wrap_content"
-                                        android:text="方位角: -- 度"
+                                        android:text="@string/gnss_azimuth"
                                         android:textSize="9sp"/>
                                 </LinearLayout>
                             </androidx.cardview.widget.CardView>
@@ -250,7 +250,7 @@
                                     android:id="@+id/nav_systems_title"
                                     android:layout_width="match_parent"
                                     android:layout_height="wrap_content"
-                                    android:text="导航系统"
+                                    android:text="鐎佃壈鍩呯化鑽ょ埠"
                                     android:gravity="center"
                                     android:textStyle="bold"
                                     android:textSize="10sp"
@@ -302,7 +302,7 @@
                                     android:id="@+id/accuracy_left_item"
                                     android:layout_width="0dp"
                                     android:layout_height="wrap_content"
-                                    android:text="位置精度"
+                                    android:text="@string/gnss_horizontal_accuracy"
                                     android:gravity="center"
                                     android:textStyle="bold"
                                     android:textSize="10sp"
@@ -316,9 +316,9 @@
                                     android:id="@+id/accuracy_right_item"
                                     android:layout_width="0dp"
                                     android:layout_height="wrap_content"
-                                    android:text="未知"
+                                    android:text="0.0 m"
                                     android:gravity="center"
-                                    android:textColor="@color/black"
+                                    android:textColor="?attr/portalTextColor"
                                     android:textStyle="bold"
                                     android:textSize="10sp"
                                     app:layout_constraintHorizontal_weight="1"
@@ -345,7 +345,7 @@
                                 android:id="@+id/switch_gnss_mock"
                                 android:layout_width="wrap_content"
                                 android:layout_height="28dp"
-                                android:textColor="@color/white"
+                                android:textColor="?attr/portalButtonTextColor"
                                 android:text="@string/start_mock"
                                 style="@style/Widget.MaterialComponents.Button.UnelevatedButton"
                                 android:insetRight="0dp"
@@ -357,7 +357,7 @@
                                 app:iconGravity="textStart"
                                 app:iconPadding="0dp"
                                 android:padding="6dp"
-                                app:iconTint="@color/white"
+                                app:iconTint="?attr/portalButtonIconColor"
                                 app:cornerRadius="12dp"/>
 
                         </LinearLayout>
@@ -373,18 +373,18 @@
                                 android:layout_width="wrap_content"
                                 android:layout_height="wrap_content"
                                 android:checkMark="?android:attr/listChoiceIndicatorMultiple"
-                                android:checkMarkTint="@color/portal_mock_off"
+                                android:checkMarkTint="?attr/portalMockOffColor"
                                 android:checked="true"
                                 android:gravity="center"
-                                android:text="随机化卫星信息"
-                                android:textColor="@color/portal_mock_off"
+                                android:text="@string/gnss_random_mock"
+                                android:textColor="?attr/portalMockOffColor"
                                 android:textSize="12sp" />
                         </LinearLayout>
                     </LinearLayout>
                 </LinearLayout>
             </androidx.cardview.widget.CardView>
 
-            <!-- 新增的设置选项卡片 - 只包含四个开关 -->
+            <!-- 闂備礁鎼崐鐟邦熆濮椻偓璺柛鎰靛枟閸庡秹鏌涢弴銊ユ珮闁哥喎娴风槐鎾诲礃閹勭彎闂侀€炲苯澧い锔炬暬婵℃潙顓兼径濠勵攨闂佹寧绋戠€氼剟銆?- 闂備礁鎲￠悷顖涚濠婂應鍋撻崹顐€跨€规洏鍎甸、鏇㈠閿涘嫸绱冲┑鐐村灦閹尖晜绂嶅鍛潟闁硅揪绠戠粈?-->
             <androidx.cardview.widget.CardView
                 android:id="@+id/settings_card"
                 android:layout_width="match_parent"
@@ -402,9 +402,9 @@
                     <TextView
                         android:layout_width="match_parent"
                         android:layout_height="wrap_content"
-                        android:textColor="@color/portal_mini_title_color"
+                        android:textColor="?attr/portalMiniTitleColor"
                         android:textAppearance="@style/TextAppearance.AppCompat.Inverse"
-                        android:text="功能设置"/>
+                        android:text="@string/gnss_settings_title" />
 
                     <LinearLayout
                         android:layout_width="match_parent"
@@ -416,7 +416,7 @@
                             android:id="@+id/switch_request_geofence"
                             android:layout_width="match_parent"
                             android:layout_height="wrap_content"
-                            android:text="允许地理围栏请求"
+                            android:text="@string/allow_request_geofence"
                             android:checked="true"
                             android:padding="8dp"/>
 
@@ -426,13 +426,13 @@
                             android:layout_height="wrap_content"
                             android:checked="true"
                             android:padding="8dp"
-                            android:text="允许位置获取" />
+                            android:text="@string/allow_get_from_location" />
 
                         <com.google.android.material.switchmaterial.SwitchMaterial
                             android:id="@+id/switch_enable_agps"
                             android:layout_width="match_parent"
                             android:layout_height="wrap_content"
-                            android:text="启用AGPS模块"
+                            android:text="@string/enable_agps"
                             android:checked="false"
                             android:padding="8dp"/>
 
@@ -440,7 +440,7 @@
                             android:id="@+id/switch_enable_nmea"
                             android:layout_width="match_parent"
                             android:layout_height="wrap_content"
-                            android:text="启用NMEA模块"
+                            android:text="@string/enable_nmea"
                             android:checked="false"
                             android:padding="8dp"/>
                     </LinearLayout>
@@ -449,3 +449,5 @@
         </LinearLayout>
     </androidx.core.widget.NestedScrollView>
 </androidx.coordinatorlayout.widget.CoordinatorLayout>
+
+

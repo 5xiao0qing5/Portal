@@ -36,7 +36,7 @@
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
                         android:text="@string/selinux"
-                        android:textColor="@color/portal_mini_title_color" />
+                        android:textColor="?attr/portalMiniTitleColor" />
                     <com.google.android.material.textview.MaterialTextView
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
@@ -66,7 +66,7 @@
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     android:text="@string/altitude"
-                    android:textColor="@color/portal_mini_title_color"
+                    android:textColor="?attr/portalMiniTitleColor"
                     app:layout_constraintStart_toStartOf="parent"
                     app:layout_constraintTop_toTopOf="parent"/>
 
@@ -91,44 +91,6 @@
             </androidx.constraintlayout.widget.ConstraintLayout>
 
             <androidx.constraintlayout.widget.ConstraintLayout
-                android:id="@+id/speed_layout"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:gravity="center_vertical"
-                android:padding="5dp"
-                android:layout_marginTop="4dp"
-                android:layout_marginBottom="4dp">
-
-                <com.google.android.material.textview.MaterialTextView
-                    android:id="@+id/speed_title"
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:text="@string/rocker_speed"
-                    android:textColor="@color/portal_mini_title_color"
-                    app:layout_constraintStart_toStartOf="parent"
-                    app:layout_constraintTop_toTopOf="parent"/>
-
-                <com.google.android.material.textview.MaterialTextView
-                    android:id="@+id/speed_desc"
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:text="@string/rocker_speed_desc"
-                    android:textSize="11sp"
-                    app:layout_constraintStart_toStartOf="parent"
-                    app:layout_constraintTop_toBottomOf="@id/speed_title"/>
-
-                <com.google.android.material.textview.MaterialTextView
-                    android:id="@+id/speed_value"
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:text="3.05米/秒"
-                    android:textSize="11sp"
-                    app:layout_constraintTop_toBottomOf="@id/speed_title"
-                    app:layout_constraintEnd_toEndOf="parent" />
-
-            </androidx.constraintlayout.widget.ConstraintLayout>
-
-            <androidx.constraintlayout.widget.ConstraintLayout
                 android:id="@+id/accuracy_layout"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
@@ -142,7 +104,7 @@
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     android:text="@string/accuracy"
-                    android:textColor="@color/portal_mini_title_color"
+                    android:textColor="?attr/portalMiniTitleColor"
                     app:layout_constraintStart_toStartOf="parent"
                     app:layout_constraintTop_toTopOf="parent"/>
 
@@ -166,6 +128,76 @@
 
             </androidx.constraintlayout.widget.ConstraintLayout>
 
+            <androidx.constraintlayout.widget.ConstraintLayout
+                android:id="@+id/theme_preset_layout"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:gravity="center_vertical"
+                android:padding="5dp"
+                android:layout_marginTop="4dp"
+                android:layout_marginBottom="4dp">
+
+                <com.google.android.material.textview.MaterialTextView
+                    android:id="@+id/theme_preset_title"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="@string/theme_preset"
+                    android:textColor="?attr/portalMiniTitleColor"
+                    app:layout_constraintStart_toStartOf="parent"
+                    app:layout_constraintTop_toTopOf="parent"/>
+
+                <com.google.android.material.textview.MaterialTextView
+                    android:id="@+id/theme_preset_desc"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="@string/theme_preset_desc"
+                    android:textSize="11sp"
+                    app:layout_constraintStart_toStartOf="parent"
+                    app:layout_constraintTop_toBottomOf="@id/theme_preset_title"/>
+
+                <com.google.android.material.textview.MaterialTextView
+                    android:id="@+id/theme_preset_value"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:textSize="11sp"
+                    app:layout_constraintTop_toBottomOf="@id/theme_preset_title"
+                    app:layout_constraintEnd_toEndOf="parent" />
+
+            </androidx.constraintlayout.widget.ConstraintLayout>
+
+            <LinearLayout
+                android:id="@+id/stable_static_location_layout"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:gravity="center_vertical"
+                android:padding="5dp"
+                android:orientation="horizontal">
+                <LinearLayout
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_weight="1"
+                    android:orientation="vertical"
+                    android:gravity="center_vertical">
+                    <com.google.android.material.textview.MaterialTextView
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="@string/stable_static_location"
+                        android:textColor="?attr/portalMiniTitleColor" />
+                    <com.google.android.material.textview.MaterialTextView
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="@string/stable_static_location_desc"
+                        android:textSize="11sp" />
+                </LinearLayout>
+                <com.google.android.material.switchmaterial.SwitchMaterial
+                    android:id="@+id/stable_static_location_switch"
+                    android:layout_width="0dp"
+                    android:layout_weight="1"
+                    android:layout_height="wrap_content"
+                    android:layout_gravity="center_vertical"
+                    app:useMaterialThemeColors="true"/>
+            </LinearLayout>
+
             <LinearLayout
                 android:id="@+id/debug_layout"
                 android:layout_width="match_parent"
@@ -183,7 +215,7 @@
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
                         android:text="@string/debug"
-                        android:textColor="@color/portal_mini_title_color" />
+                        android:textColor="?attr/portalMiniTitleColor" />
                     <com.google.android.material.textview.MaterialTextView
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
@@ -216,7 +248,7 @@
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
                         android:text="@string/dgc"
-                        android:textColor="@color/portal_mini_title_color" />
+                        android:textColor="?attr/portalMiniTitleColor" />
                     <com.google.android.material.textview.MaterialTextView
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
@@ -249,7 +281,7 @@
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
                         android:text="@string/rll"
-                        android:textColor="@color/portal_mini_title_color" />
+                        android:textColor="?attr/portalMiniTitleColor" />
                     <com.google.android.material.textview.MaterialTextView
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
@@ -282,7 +314,7 @@
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
                         android:text="@string/dfused"
-                        android:textColor="@color/portal_mini_title_color" />
+                        android:textColor="?attr/portalMiniTitleColor" />
                     <com.google.android.material.textview.MaterialTextView
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
@@ -315,7 +347,7 @@
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
                         android:text="@string/cdma"
-                        android:textColor="@color/portal_mini_title_color" />
+                        android:textColor="?attr/portalMiniTitleColor" />
                     <com.google.android.material.textview.MaterialTextView
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
@@ -324,6 +356,39 @@
                 </LinearLayout>
                 <com.google.android.material.switchmaterial.SwitchMaterial
                     android:id="@+id/cdma_switch"
+                    android:layout_width="0dp"
+                    android:layout_weight="1"
+                    android:layout_height="wrap_content"
+                    android:layout_gravity="center_vertical"
+                    app:useMaterialThemeColors="true"/>
+            </LinearLayout>
+
+            <LinearLayout
+                android:id="@+id/cell_mock_layout"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:gravity="center_vertical"
+                android:padding="5dp"
+                android:orientation="horizontal">
+                <LinearLayout
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_weight="1"
+                    android:orientation="vertical"
+                    android:gravity="center_vertical">
+                    <com.google.android.material.textview.MaterialTextView
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="@string/cell_mock"
+                        android:textColor="?attr/portalMiniTitleColor" />
+                    <com.google.android.material.textview.MaterialTextView
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="@string/cell_mock_desc"
+                        android:textSize="11sp" />
+                </LinearLayout>
+                <com.google.android.material.switchmaterial.SwitchMaterial
+                    android:id="@+id/cell_mock_switch"
                     android:layout_width="0dp"
                     android:layout_weight="1"
                     android:layout_height="wrap_content"
@@ -349,7 +414,7 @@
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
                         android:text="@string/hook_sensor"
-                        android:textColor="@color/portal_mini_title_color" />
+                        android:textColor="?attr/portalMiniTitleColor" />
                     <com.google.android.material.textview.MaterialTextView
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
@@ -379,7 +444,7 @@
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     android:text="@string/item_report_duration_title"
-                    android:textColor="@color/portal_mini_title_color"
+                    android:textColor="?attr/portalMiniTitleColor"
                     app:layout_constraintStart_toStartOf="parent"
                     app:layout_constraintTop_toTopOf="parent"/>
 
@@ -416,8 +481,8 @@
                     android:id="@+id/satellite_count_title"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:text="模拟最少卫星数量"
-                    android:textColor="@color/portal_mini_title_color"
+                    android:text="@string/min_satellite_count"
+                    android:textColor="?attr/portalMiniTitleColor"
                     app:layout_constraintStart_toStartOf="parent"
                     app:layout_constraintTop_toTopOf="parent"/>
 
@@ -425,7 +490,7 @@
                     android:id="@+id/satellite_count_desc"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:text="最少模拟的卫星数量（只支持北斗）"
+                    android:text="@string/min_satellite_count_desc"
                     android:textSize="11sp"
                     app:layout_constraintStart_toStartOf="parent"
                     app:layout_constraintTop_toBottomOf="@id/satellite_count_title"/>
@@ -457,12 +522,12 @@
                     <com.google.android.material.textview.MaterialTextView
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
-                        android:text="禁用扫描WIFI列表"
-                        android:textColor="@color/portal_mini_title_color" />
+                        android:text="@string/disable_wlan_scan"
+                        android:textColor="?attr/portalMiniTitleColor" />
                     <com.google.android.material.textview.MaterialTextView
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
-                        android:text="一定程度解决位置拉回（测试）"
+                        android:text="@string/disable_wlan_scan_desc"
                         android:textSize="11sp" />
                 </LinearLayout>
                 <com.google.android.material.switchmaterial.SwitchMaterial
@@ -490,12 +555,12 @@
                     <com.google.android.material.textview.MaterialTextView
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
-                        android:text="反定位拉回"
-                        android:textColor="@color/portal_mini_title_color" />
+                        android:text="@string/anti_pullback"
+                        android:textColor="?attr/portalMiniTitleColor" />
                     <com.google.android.material.textview.MaterialTextView
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
-                        android:text="解决位置拉回问题 可能导致发热"
+                        android:text="@string/anti_pullback_desc"
                         android:textSize="11sp" />
                 </LinearLayout>
                 <com.google.android.material.switchmaterial.SwitchMaterial
@@ -510,3 +575,6 @@
 
     </ScrollView>
 </androidx.constraintlayout.widget.ConstraintLayout>
+
+
+

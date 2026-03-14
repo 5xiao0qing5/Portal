@@ -1,58 +1,218 @@
 <resources xmlns:tools="http://schemas.android.com/tools">
-    <!-- Base application theme. -->
-    <style name="AppTheme" parent="Theme.MaterialComponents.Light.NoActionBar">
-        <item name="colorPrimaryVariant">@color/purple_700</item>
-        <item name="colorOnPrimary">@color/portal_appbar_color</item>
-        <item name="colorSecondary">@color/portal_appbar_color</item>
-        <item name="colorSecondaryVariant">@color/portal_appbar_color_center</item>
+    <style name="Portal.CardViewStyle" parent="CardView">
+        <item name="cardBackgroundColor">?attr/portalCardColor</item>
+    </style>
 
-
-        <item name="colorOnSecondary">@color/white</item>
-        <item name="colorPrimary">@color/theme_appbar_color</item>
-        <item name="colorControlHighlight">@color/theme_focused_touch</item>
-
-        <item name="colorPrimaryDark">@color/portal_appbar_color</item>
+    <style name="Portal.MaterialCardViewStyle" parent="Widget.MaterialComponents.CardView">
+        <item name="cardBackgroundColor">?attr/portalCardColor</item>
+    </style>
+    <style name="AppTheme.BaseLight" parent="Theme.MaterialComponents.Light.NoActionBar">
+        <item name="colorPrimary">@color/theme_active</item>
+        <item name="colorPrimaryVariant">?attr/portalAppBarColorDark</item>
+        <item name="colorSecondary">?attr/portalActiveColor</item>
+        <item name="colorSecondaryVariant">?attr/portalAppBarColorCenter</item>
+        <item name="colorOnPrimary">?attr/portalAppBarTextColor</item>
+        <item name="colorOnSecondary">?attr/portalTextColor</item>
+        <item name="colorSurface">?attr/portalCardColor</item>
+        <item name="colorOnSurface">?attr/portalTextColor</item>
+        <item name="colorOnBackground">?attr/portalTextColor</item>
+        <item name="colorBackgroundFloating">?attr/portalCardColor</item>
+        <item name="colorControlHighlight">?attr/portalFocusedTouchColor</item>
+        <item name="colorControlActivated">?attr/portalAppBarColorDark</item>
+        <item name="colorControlNormal">?attr/portalAppBarIconColor</item>
+        <item name="android:windowBackground">?attr/portalWindowBackground</item>
+        <item name="android:colorBackground">?attr/portalWindowBackground</item>
         <item name="android:statusBarColor">@android:color/transparent</item>
+        <item name="android:textColorPrimary">?attr/portalTextColor</item>
+        <item name="android:textColorSecondary">@color/portal_text_secondary_light</item>
+        <item name="android:textColorHint">?attr/portalHintColor</item>
+        <item name="android:editTextColor">?attr/portalTextColor</item>
+        <item name="android:textViewStyle">@style/Portal.TextView</item>
         <item name="windowActionModeOverlay">true</item>
         <item name="windowActionBar">false</item>
         <item name="windowNoTitle">true</item>
         <item name="android:windowDrawsSystemBarBackgrounds">true</item>
         <item name="android:windowTranslucentStatus">true</item>
-        <item name="colorControlNormal">@color/white</item>
-        <item name="colorControlActivated">@color/portal_appbar_color_dark</item>
-        <item name="android:textColorHint">@android:color/white</item>
-        <item name="android:editTextColor">@android:color/white</item>
         <item name="searchViewStyle">@style/Portal.SearchViewStyle</item>
         <item name="selectableItemBackgroundBorderless">@drawable/ripple_effect</item>
         <item name="sliderStyle">@style/Portal.SliderTheme</item>
+        <item name="cardViewStyle">@style/Portal.CardViewStyle</item>
+        <item name="materialCardViewStyle">@style/Portal.MaterialCardViewStyle</item>
     </style>
 
-    <style name="Portal.SliderTheme" parent="Widget.MaterialComponents.Slider">
-
+    <style name="AppTheme.BaseDark" parent="Theme.MaterialComponents.NoActionBar">
+        <item name="colorPrimary">@color/theme_active</item>
+        <item name="colorPrimaryVariant">?attr/portalAppBarColorDark</item>
+        <item name="colorSecondary">?attr/portalActiveColor</item>
+        <item name="colorSecondaryVariant">?attr/portalAppBarColorCenter</item>
+        <item name="colorOnPrimary">?attr/portalAppBarTextColor</item>
+        <item name="colorOnSecondary">?attr/portalTextColor</item>
+        <item name="colorSurface">?attr/portalCardColor</item>
+        <item name="colorOnSurface">?attr/portalTextColor</item>
+        <item name="colorOnBackground">?attr/portalTextColor</item>
+        <item name="colorBackgroundFloating">?attr/portalCardColor</item>
+        <item name="colorControlHighlight">?attr/portalFocusedTouchColor</item>
+        <item name="colorControlActivated">?attr/portalActiveColor</item>
+        <item name="colorControlNormal">?attr/portalAppBarIconColor</item>
+        <item name="android:windowBackground">?attr/portalWindowBackground</item>
+        <item name="android:colorBackground">?attr/portalWindowBackground</item>
+        <item name="android:statusBarColor">@android:color/transparent</item>
+        <item name="android:textColorPrimary">?attr/portalTextColor</item>
+        <item name="android:textColorSecondary">@color/portal_text_secondary_dark</item>
+        <item name="android:textColorHint">?attr/portalHintColor</item>
+        <item name="android:editTextColor">?attr/portalTextColor</item>
+        <item name="android:textViewStyle">@style/Portal.TextView</item>
+        <item name="windowActionModeOverlay">true</item>
+        <item name="windowActionBar">false</item>
+        <item name="windowNoTitle">true</item>
+        <item name="android:windowDrawsSystemBarBackgrounds">true</item>
+        <item name="android:windowTranslucentStatus">true</item>
+        <item name="searchViewStyle">@style/Portal.SearchViewStyle</item>
+        <item name="selectableItemBackgroundBorderless">@drawable/ripple_effect</item>
+        <item name="sliderStyle">@style/Portal.SliderTheme</item>
+        <item name="cardViewStyle">@style/Portal.CardViewStyle</item>
+        <item name="materialCardViewStyle">@style/Portal.MaterialCardViewStyle</item>
     </style>
 
-    <style name="Portal.SearchViewStyle" parent="Widget.AppCompat.SearchView">
+    <style name="AppTheme.MinimalistBusiness" parent="AppTheme.BaseLight">
+        <item name="colorPrimary">#1A73E8</item>
+        <item name="colorPrimaryVariant">#1558B0</item>
+        <item name="colorSecondary">#4285F4</item>
+        <item name="colorSecondaryVariant">#1558B0</item>
+        <item name="portalAppBarColor">#1A73E8</item>
+        <item name="portalAppBarColorCenter">#4285F4</item>
+        <item name="portalAppBarColorDark">#1558B0</item>
+        <item name="portalMiniTitleColor">#1A73E8</item>
+        <item name="portalHintColor">#5F6368</item>
+        <item name="portalTextColor">#202124</item>
+        <item name="portalTextSecondaryColor">#5F6368</item>
+        <item name="portalNavIconColor">#202124</item>
+        <item name="portalMockOffColor">#8AB4F8</item>
+        <item name="portalMockOnColor">#1A73E8</item>
+        <item name="portalSideNavTextColor">#FFFFFF</item>
+        <item name="portalSideNavStartColor">#1558B0</item>
+        <item name="portalSideNavCenterColor">#1A73E8</item>
+        <item name="portalSideNavEndColor">#4285F4</item>
+        <item name="portalAppBarTextColor">#FFFFFF</item>
+        <item name="portalAppBarIconColor">#FFFFFF</item>
+        <item name="portalActiveColor">#1A73E8</item>
+        <item name="portalFocusedTouchColor">#D2E3FC</item>
+        <item name="portalLocationDetailBackground">#CC1A73E8</item>
+        <item name="portalLocationDetailBlock">#F8F9FA</item>
+        <item name="portalWindowBackground">#F8F9FA</item>
+        <item name="portalCardColor">#FFFFFFFF</item>
+        <item name="portalButtonTextColor">#FFFFFF</item>
+        <item name="portalButtonIconColor">#FFFFFF</item>
     </style>
 
-    <style name="AppTheme.Portal.ToolBarOverlay" parent="ThemeOverlay.AppCompat.DayNight.ActionBar">
-
+    <style name="AppTheme.ModernDark" parent="AppTheme.BaseDark">
+        <item name="portalAppBarColor">#BB86FC</item>
+        <item name="portalAppBarColorCenter">#9D6DE0</item>
+        <item name="portalAppBarColorDark">#6F43C0</item>
+        <item name="portalMiniTitleColor">#BB86FC</item>
+        <item name="portalHintColor">#9AA0A6</item>
+        <item name="portalTextColor">#EDEDED</item>
+        <item name="portalTextSecondaryColor">#B0B0B0</item>
+        <item name="portalNavIconColor">#EDEDED</item>
+        <item name="portalMockOffColor">#888888</item>
+        <item name="portalMockOnColor">#03DAC6</item>
+        <item name="portalSideNavTextColor">#F5F5F5</item>
+        <item name="portalSideNavStartColor">#121212</item>
+        <item name="portalSideNavCenterColor">#1E1E1E</item>
+        <item name="portalSideNavEndColor">#2A2A2A</item>
+        <item name="portalAppBarTextColor">#121212</item>
+        <item name="portalAppBarIconColor">#121212</item>
+        <item name="portalActiveColor">#03DAC6</item>
+        <item name="portalFocusedTouchColor">#22303A</item>
+        <item name="portalLocationDetailBackground">#CC1E1E1E</item>
+        <item name="portalLocationDetailBlock">#FFF4EDFF</item>
+        <item name="portalWindowBackground">#121212</item>
+        <item name="portalCardColor">#1E1E1E</item>
+        <item name="portalButtonTextColor">#121212</item>
+        <item name="portalButtonIconColor">#121212</item>
     </style>
 
-    <style name="AppTheme.Portal.PopupTheme" parent="ThemeOverlay.AppCompat.Light">
-
+    <style name="AppTheme.FuturisticVibrant" parent="AppTheme.BaseDark">
+        <item name="portalAppBarColor">#7000FF</item>
+        <item name="portalAppBarColorCenter">#5300C2</item>
+        <item name="portalAppBarColorDark">#2E005F</item>
+        <item name="portalMiniTitleColor">#00F0FF</item>
+        <item name="portalHintColor">#7AA2B8</item>
+        <item name="portalTextColor">#E6F1FF</item>
+        <item name="portalTextSecondaryColor">#A5B6C8</item>
+        <item name="portalNavIconColor">#E6F1FF</item>
+        <item name="portalMockOffColor">#7AA2B8</item>
+        <item name="portalMockOnColor">#FF007A</item>
+        <item name="portalSideNavTextColor">#E6F1FF</item>
+        <item name="portalSideNavStartColor">#0B0E14</item>
+        <item name="portalSideNavCenterColor">#1A1140</item>
+        <item name="portalSideNavEndColor">#7000FF</item>
+        <item name="portalAppBarTextColor">#FFFFFF</item>
+        <item name="portalAppBarIconColor">#FFFFFF</item>
+        <item name="portalActiveColor">#00F0FF</item>
+        <item name="portalFocusedTouchColor">#333C52</item>
+        <item name="portalLocationDetailBackground">#CC0B0E14</item>
+        <item name="portalLocationDetailBlock">#FFDCF8FF</item>
+        <item name="portalWindowBackground">#0B0E14</item>
+        <item name="portalCardColor">#141923</item>
+        <item name="portalButtonTextColor">#FFFFFF</item>
+        <item name="portalButtonIconColor">#FFFFFF</item>
     </style>
+
+    <style name="AppTheme.SoftNature" parent="AppTheme.BaseLight">
+        <item name="portalAppBarColor">#8DA399</item>
+        <item name="portalAppBarColorCenter">#A9BCAF</item>
+        <item name="portalAppBarColorDark">#6C8278</item>
+        <item name="portalMiniTitleColor">#8DA399</item>
+        <item name="portalHintColor">#8A817C</item>
+        <item name="portalTextColor">#4A4A4A</item>
+        <item name="portalTextSecondaryColor">#7A7A7A</item>
+        <item name="portalNavIconColor">#4A4A4A</item>
+        <item name="portalMockOffColor">#8A817C</item>
+        <item name="portalMockOnColor">#E2B49A</item>
+        <item name="portalSideNavTextColor">#FFFFFF</item>
+        <item name="portalSideNavStartColor">#6C8278</item>
+        <item name="portalSideNavCenterColor">#8DA399</item>
+        <item name="portalSideNavEndColor">#B5C5BD</item>
+        <item name="portalAppBarTextColor">#24312C</item>
+        <item name="portalAppBarIconColor">#24312C</item>
+        <item name="portalActiveColor">#E2B49A</item>
+        <item name="portalFocusedTouchColor">#F2E1D5</item>
+        <item name="portalLocationDetailBackground">#CCE2B49A</item>
+        <item name="portalLocationDetailBlock">#FFFDF7F2</item>
+        <item name="portalWindowBackground">#FCF8F3</item>
+        <item name="portalCardColor">#FFFFFFFF</item>
+        <item name="portalButtonTextColor">#4A4A4A</item>
+        <item name="portalButtonIconColor">#4A4A4A</item>
+    </style>
+
+    <style name="AppTheme" parent="AppTheme.MinimalistBusiness" />
+
+    <style name="Portal.NavigationViewTheme" parent="ThemeOverlay.MaterialComponents">
+        <item name="colorPrimary">@color/theme_active</item>
+        <item name="android:textColorPrimary">@color/portal_text_secondary_light</item>
+        <item name="android:textColorSecondary">@color/portal_text_secondary_light</item>
+        <item name="colorOnSurface">@color/portal_text_secondary_light</item>
+    </style>
+
+    <style name="Portal.TextView" parent="Widget.AppCompat.TextView">
+        <item name="android:textColor">?attr/portalTextColor</item>
+        <item name="android:textColorHint">?attr/portalHintColor</item>
+    </style>
+
+    <style name="Portal.SliderTheme" parent="Widget.MaterialComponents.Slider" />
+    <style name="Portal.SearchViewStyle" parent="Widget.AppCompat.SearchView" />
+    <style name="AppTheme.Portal.ToolBarOverlay" parent="ThemeOverlay.AppCompat.DayNight.ActionBar" />
+    <style name="AppTheme.Portal.PopupTheme" parent="ThemeOverlay.AppCompat.Light" />
 
     <style name="AppTheme.Dark" parent="Theme.AppCompat.NoActionBar">
         <item name="colorAccent">@color/accent</item>
-        <!--<item name="colorAccentFallback">@color/accentFallback</item>-->
         <item name="windowActionModeOverlay">true</item>
         <item name="android:windowDrawsSystemBarBackgrounds">true</item>
-        <!--<item name="cardStyle">@style/CardViewStyle.Dark</item>-->
         <item name="windowActionBar">false</item>
         <item name="windowNoTitle">true</item>
         <item name="android:statusBarColor">@android:color/transparent</item>
         <item name="android:textColorSecondary">@color/dark_secondary_text</item>
-        <!--<item name="imageColorTint">@color/dark_secondary_text</item>-->
     </style>
 
     <style name="AppTheme.Translucent" parent="Theme.AppCompat.NoActionBar">
@@ -70,14 +230,10 @@
         <item name="android:windowIsFloating">true</item>
         <item name="android:windowContentOverlay">@null</item>
         <item name="android:background">@android:color/transparent</item>
-
-        <!--<item name="dialog_positive_color">@color/tx_appbar_color</item>
-        <item name="dialog_negative_color">@color/red500</item>
-        <item name="dialog_neutral_color">@color/tx_appbar_color</item>-->
     </style>
 
     <style name="AppTheme.MaterialButton" parent="Widget.MaterialComponents.Button">
-        <item name="android:textColor">@color/white</item>
+        <item name="android:textColor">?attr/portalButtonTextColor</item>
         <item name="android:textSize">14sp</item>
         <item name="android:textAllCaps">false</item>
         <item name="android:insetTop">0dp</item>
@@ -87,7 +243,7 @@
         <item name="elevation">10dp</item>
         <item name="rippleColor">@color/white</item>
         <item name="iconTintMode">src_atop</item>
-        <item name="iconTint">@color/white</item>
+        <item name="iconTint">?attr/portalButtonIconColor</item>
         <item name="iconGravity">textStart</item>
         <item name="iconPadding">0dp</item>
         <item name="iconSize">20dp</item>

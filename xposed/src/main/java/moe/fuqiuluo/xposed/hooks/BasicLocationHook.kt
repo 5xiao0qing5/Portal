@@ -14,8 +14,6 @@ import moe.fuqiuluo.xposed.utils.hookAllMethodsAfter
 import moe.fuqiuluo.xposed.utils.hookAllMethodsBefore
 import moe.fuqiuluo.xposed.utils.toClass
 import moe.fuqiuluo.xposed.utils.toClassOrThrow
-import kotlin.random.Random
-
 object BasicLocationHook: BaseLocationHook() {
     operator fun invoke(classLoader: ClassLoader) {
 //        val hookSetLatitude = object: XC_MethodHook() {
@@ -70,22 +68,27 @@ object BasicLocationHook: BaseLocationHook() {
                     location.isMock = false
                 }
                 location.altitude = FakeLoc.altitude
-                location.speed = originLocation.speed
+                location.speed = FakeLoc.injectedSpeed(originLocation.speed)
                 if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
-                    location.speedAccuracyMetersPerSecond = 0F
+                    location.speedAccuracyMetersPerSecond = if (FakeLoc.hasBearings || !FakeLoc.stableStaticLocation) {
+                        location.speed.coerceAtLeast(0.1f)
+                    } else {
+                        0f
+                    }
                 }
 
                 location.time = originLocation.time
                 location.accuracy = originLocation.accuracy
-                var modBearing = FakeLoc.bearing % 360.0 + 0.0
-                if (modBearing < 0) {
-                    modBearing += 360.0
-                }
-                if (location.hasBearing()) {
-                    location.bearing = modBearing.toFloat()
-                }
-                if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
-                    location.bearingAccuracyDegrees = modBearing.toFloat()
+                if (FakeLoc.hasBearings || !FakeLoc.stableStaticLocation) {
+                    location.bearing = FakeLoc.bearing.toFloat()
+                    if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+                        location.bearingAccuracyDegrees = 1.0f
+                    }
+                } else if (originLocation.hasBearing()) {
+                    location.bearing = originLocation.bearing
+                    if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O && originLocation.hasBearingAccuracy()) {
+                        location.bearingAccuracyDegrees = originLocation.bearingAccuracyDegrees
+                    }
                 }
                 location.elapsedRealtimeNanos = originLocation.elapsedRealtimeNanos
                 if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {

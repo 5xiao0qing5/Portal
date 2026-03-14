@@ -10,12 +10,16 @@ import android.view.LayoutInflater
 import android.view.MotionEvent
 import android.view.View
 import android.view.WindowManager
+import android.widget.TextView
 import android.widget.Toast
 import androidx.appcompat.widget.AppCompatImageView
 import androidx.cardview.widget.CardView
+import com.google.android.material.slider.Slider
 import moe.fuqiuluo.portal.R
 import moe.fuqiuluo.portal.android.widget.RockerView
 import moe.fuqiuluo.portal.ext.rockerCoords
+import moe.fuqiuluo.portal.ext.speed
+import kotlin.math.roundToInt
 
 
 @SuppressLint("RtlHardcoded", "ClickableViewAccessibility")
@@ -36,6 +40,7 @@ class Rocker(private val activity: Activity) : View.OnTouchListener {
     var isStart = false
     var isHide = false
     private var autoCardVisible = false
+    private var expandMenuVisible = false
     var autoStatus = false
         get() = field
         set(value) {
@@ -44,6 +49,7 @@ class Rocker(private val activity: Activity) : View.OnTouchListener {
         }
     var autoLockStatus = false
     var autoListener: OnAutoListener? = null
+    private var speedChangedListener: ((Double) -> Unit)? = null
 
     init {
         layoutParams.flags = (WindowManager.LayoutParams.FLAG_NOT_TOUCH_MODAL
@@ -65,19 +71,39 @@ class Rocker(private val activity: Activity) : View.OnTouchListener {
         layoutParams.y = rockerCoords.second
 
         root.setOnTouchListener(this)
-        
-        
-        root.findViewById<View>(R.id.expand_menu).setOnClickListener {
-            Toast.makeText(activity, "暂不支持", Toast.LENGTH_SHORT).show()
+        val expandMenuCard = root.findViewById<CardView>(R.id.expand_menu_card)
+        val speedTextView = root.findViewById<TextView>(R.id.speed)
+        val speedSlider = root.findViewById<Slider>(R.id.speed_slider)
+        val initialSpeed = normalizeRockerSpeed(activity.speed.toFloat())
+        activity.speed = initialSpeed.toDouble()
+        speedTextView.text = formatSpeed(initialSpeed)
+        speedSlider.value = initialSpeed
+        expandMenuCard.visibility = if (expandMenuVisible) View.VISIBLE else View.GONE
+
+        root.findViewById<View>(R.id.auto_status).setOnClickListener {
+            expandMenuVisible = !expandMenuVisible
+            expandMenuCard.visibility = if (expandMenuVisible) View.VISIBLE else View.GONE
         }
+
+        speedSlider.addOnChangeListener { _, value, _ ->
+            val normalized = normalizeRockerSpeed(value)
+            if (speedSlider.value != normalized) {
+                speedSlider.value = normalized
+                return@addOnChangeListener
+            }
+            activity.speed = normalized.toDouble()
+            speedTextView.text = formatSpeed(normalized)
+            speedChangedListener?.invoke(normalized.toDouble())
+        }
+
         val autoCard = root.findViewById<CardView>(R.id.auto_card)
         autoCard.visibility = if (autoCardVisible) View.VISIBLE else View.GONE
         root.findViewById<View>(R.id.auto).setOnClickListener {
             autoCardVisible = !autoCardVisible
             if (autoCardVisible) {
-                autoCard.visibility = View.GONE
-            } else {
                 autoCard.visibility = View.VISIBLE
+            } else {
+                autoCard.visibility = View.GONE
             }
         }
         val rockerView = root.findViewById<RockerView>(R.id.rocker)
@@ -93,15 +119,14 @@ class Rocker(private val activity: Activity) : View.OnTouchListener {
             autoStatus = !autoStatus
             playAuto(rockerView)
         }
-        root.findViewById<View>(R.id.auto_status).setOnClickListener {
-
-        }
         root.findViewById<View>(R.id.auto_lock).setOnClickListener {
             autoLockStatus = !autoLockStatus
             if (autoLockStatus) {
-                root.findViewById<View>(R.id.auto_lock).setBackgroundResource(R.drawable.baseline_lock_24)
+                root.findViewById<AppCompatImageView>(R.id.auto_lock)
+                    .setImageResource(R.drawable.baseline_lock_24)
             } else {
-                root.findViewById<View>(R.id.auto_lock).setBackgroundResource(R.drawable.baseline_manual_24)
+                root.findViewById<AppCompatImageView>(R.id.auto_lock)
+                    .setImageResource(R.drawable.baseline_manual_24)
             }
             autoListener?.onAutoLock(autoLockStatus)
         }
@@ -109,11 +134,11 @@ class Rocker(private val activity: Activity) : View.OnTouchListener {
 
     private fun playAuto(rockerView: RockerView) {
         if (autoStatus) {
-            root.findViewById<View>(R.id.auto_play)
-                .setBackgroundResource(R.drawable.baseline_stop_24)
+            root.findViewById<AppCompatImageView>(R.id.auto_play)
+                .setImageResource(R.drawable.baseline_stop_24)
         } else {
-            root.findViewById<View>(R.id.auto_play)
-                .setBackgroundResource(R.drawable.baseline_play_24)
+            root.findViewById<AppCompatImageView>(R.id.auto_play)
+                .setImageResource(R.drawable.baseline_play_24)
             upController()
         }
         autoListener?.onAutoPlay(autoStatus)
@@ -134,11 +159,17 @@ class Rocker(private val activity: Activity) : View.OnTouchListener {
     }
     
     fun show() {
+        if (isStart) {
+            return
+        }
         windowManager.addView(root, layoutParams)
         isStart = true
     }
 
     fun hide() {
+        if (!isStart) {
+            return
+        }
         val rockerView = root.findViewById<RockerView>(R.id.rocker)
         rockerView.reset()
         windowManager.removeView(root)
@@ -160,6 +191,10 @@ class Rocker(private val activity: Activity) : View.OnTouchListener {
 
     fun setRockerAutoListener(listener: OnAutoListener) {
         autoListener = listener
+    }
+
+    fun setOnSpeedChangedListener(listener: (Double) -> Unit) {
+        speedChangedListener = listener
     }
 
     fun invokeOnTouchEvent(joystickX: Float, joystickY: Float) {
@@ -208,6 +243,16 @@ class Rocker(private val activity: Activity) : View.OnTouchListener {
 
 
     companion object {
+        private fun normalizeRockerSpeed(value: Float): Float {
+            val clamped = value.coerceIn(0.5f, 20.0f)
+            val steps = ((clamped - 0.5f) / 0.5f).roundToInt()
+            return 0.5f + steps * 0.5f
+        }
+
+        private fun formatSpeed(value: Float): String {
+            return String.format("%.1f m/s", value)
+        }
+
         interface OnAutoListener {
             fun onAutoPlay(isPlay: Boolean)
             fun onAutoLock(isLock: Boolean)

@@ -10,7 +10,6 @@ import moe.fuqiuluo.xposed.utils.Logger
 import moe.microbios.nmea.NMEA
 import moe.microbios.nmea.NmeaValue
 import kotlin.random.Random
-
 abstract class BaseLocationHook: BaseDivineService() {
     fun injectLocation(originLocation: Location, realLocation: Boolean = true): Location {
         if (realLocation) {
@@ -44,10 +43,13 @@ abstract class BaseLocationHook: BaseDivineService() {
         location.latitude = jitterLat.first
         location.longitude = jitterLat.second
         location.altitude = FakeLoc.altitude
-        val speedAmp = Random.nextDouble(-FakeLoc.speedAmplitude, FakeLoc.speedAmplitude)
-        location.speed = (originLocation.speed + speedAmp).toFloat()
+        location.speed = FakeLoc.injectedSpeed(originLocation.speed)
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O && originLocation.hasSpeedAccuracy()) {
-            location.speedAccuracyMetersPerSecond = (FakeLoc.speed + speedAmp).toFloat()
+            location.speedAccuracyMetersPerSecond = if (FakeLoc.hasBearings || !FakeLoc.stableStaticLocation) {
+                location.speed.coerceAtLeast(0.1f)
+            } else {
+                0f
+            }
         }
 
         if (location.altitude == 0.0) {
@@ -58,21 +60,20 @@ abstract class BaseLocationHook: BaseDivineService() {
 
         // final addition of zero is to remove -0 results. while these are technically within the
         // range [0, 360) according to IEEE semantics, this eliminates possible user confusion.
-        var modBearing = FakeLoc.bearing % 360.0 + 0.0
-        if (modBearing < 0) {
-            modBearing += 360.0
-        }
-        location.bearing = modBearing.toFloat()
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
-            location.bearingAccuracyDegrees = modBearing.toFloat()
-        }
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
-            if (location.hasBearingAccuracy() && location.bearingAccuracyDegrees == 0.0f) {
+        if (FakeLoc.hasBearings || !FakeLoc.stableStaticLocation) {
+            val modBearing = FakeLoc.bearing
+            location.bearing = modBearing.toFloat()
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
                 location.bearingAccuracyDegrees = 1.0f
+            }
+        } else if (originLocation.hasBearing()) {
+            location.bearing = originLocation.bearing
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O && originLocation.hasBearingAccuracy()) {
+                location.bearingAccuracyDegrees = originLocation.bearingAccuracyDegrees
             }
         }
 
-        if (location.speed == 0.0f) {
+        if (!FakeLoc.stableStaticLocation && location.speed == 0.0f) {
             location.speed = 1.2f
         }
 

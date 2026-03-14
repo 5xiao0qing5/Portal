@@ -19,6 +19,7 @@ import androidx.fragment.app.Fragment
 import androidx.fragment.app.activityViewModels
 import androidx.fragment.app.viewModels
 import androidx.lifecycle.lifecycleScope
+import androidx.navigation.fragment.findNavController
 import com.baidu.location.BDAbstractLocationListener
 import com.baidu.location.BDLocation
 import com.baidu.location.LocationClient
@@ -49,9 +50,9 @@ import moe.fuqiuluo.portal.ext.selectRoute
 import moe.fuqiuluo.portal.ext.wgs84
 import moe.fuqiuluo.portal.ui.viewmodel.BaiduMapViewModel
 import moe.fuqiuluo.portal.ui.viewmodel.HomeViewModel
+import moe.fuqiuluo.portal.ui.viewmodel.MockServiceViewModel
 import java.math.BigDecimal
 import java.util.List
-import kotlin.random.Random
 
 class HomeFragment : Fragment() {
     private var _binding: FragmentHomeBinding? = null
@@ -63,6 +64,8 @@ class HomeFragment : Fragment() {
     private val homeViewModel by viewModels<HomeViewModel>()
     private lateinit var mLocationClient: LocationClient
     private val baiduMapViewModel by activityViewModels<BaiduMapViewModel>()
+    private val mockServiceViewModel by activityViewModels<MockServiceViewModel>()
+    private var hasAutoCenteredToCurrentLocation = false
 
     @SuppressLint("SetTextI18n")
     override fun onCreateView(
@@ -99,7 +102,7 @@ class HomeFragment : Fragment() {
 
             setMapConfig(
                 baiduMapViewModel.perspectiveState,
-                if (Random.nextBoolean()) R.drawable.icon_my_location else null
+                null
             )
 
             setOnMapClickListener(object : BaiduMap.OnMapClickListener {
@@ -120,6 +123,7 @@ class HomeFragment : Fragment() {
                     lifecycleScope.launch {
                         markMap()
                     }
+                    completePendingHistoricalLocationMapEdit(loc.wgs84)
                 }
 
                 override fun onMapPoiClick(poi: MapPoi) {}
@@ -137,6 +141,7 @@ class HomeFragment : Fragment() {
                 lifecycleScope.launch {
                     markMap()
                 }
+                completePendingHistoricalLocationMapEdit(loc.wgs84)
             }
 
             binding.mapTypeGroup.check(
@@ -146,6 +151,11 @@ class HomeFragment : Fragment() {
                     else -> R.id.map_type_normal
                 }
             )
+
+            baiduMapViewModel.currentLocation?.let {
+                setMapStatus(MapStatusUpdateFactory.newLatLng(it.gcj02))
+                hasAutoCenteredToCurrentLocation = true
+            }
         }
 
         mLocationClient = LocationClient(requireContext())
@@ -181,6 +191,10 @@ class HomeFragment : Fragment() {
                 with(baiduMapViewModel) {
                     currentLocation = loc.wgs84
                     baiduMap.setMyLocationData(locData)
+                    if (!hasAutoCenteredToCurrentLocation) {
+                        baiduMap.setMapStatus(MapStatusUpdateFactory.newLatLng(currentLocation!!.gcj02))
+                        hasAutoCenteredToCurrentLocation = true
+                    }
                 }
             }
         })
@@ -208,7 +222,6 @@ class HomeFragment : Fragment() {
 
         binding.fab.setOnClickListener { view ->
             val subFabList = arrayOf(
-                binding.fabMyLocation,
                 binding.fabGoto,
                 binding.fabAdd
             )
@@ -290,6 +303,19 @@ class HomeFragment : Fragment() {
         binding.fabAdd.setOnClickListener {
             if (!showAddLocationDialog()) {
                 Toast.makeText(requireContext(), "选择位置异常", Toast.LENGTH_SHORT).show()
+            }
+        }
+
+        if (mockServiceViewModel.pendingHistoricalLocationMapPick) {
+            val pendingDraft = mockServiceViewModel.pendingHistoricalLocationEditDraft
+            val latitude = pendingDraft?.latitudeText?.toDoubleOrNull()
+            val longitude = pendingDraft?.longitudeText?.toDoubleOrNull()
+            if (latitude != null && longitude != null) {
+                baiduMapViewModel.markedLoc = latitude to longitude
+                markMap(moveEyes = true)
+            }
+            binding.root.post {
+                Toast.makeText(requireContext(), "请在地图中单击或长按选择新位置", Toast.LENGTH_SHORT).show()
             }
         }
 
@@ -375,15 +401,14 @@ class HomeFragment : Fragment() {
                     mGeoCoder?.reverseGeoCode(ReverseGeoCodeOption().location(it.gcj02))
                     markedLoc = it
                 }
-                editName.setText("当前位置-" + System.currentTimeMillis())
-            } else {
-                editName.setText("标点位置-" + System.currentTimeMillis())
             }
 
             val lat = BigDecimal.valueOf(markedLoc?.first ?: return false)
             val lon = BigDecimal.valueOf(markedLoc?.second ?: return false)
 
-            editAddress.setText(markName ?: "位置地址")
+            val defaultAddress = markName ?: "位置地址"
+            editAddress.setText(defaultAddress)
+            editName.setText(defaultAddress)
             editLatLon.setText("${lon.toPlainString()}, ${lat.toPlainString()}")
 
             val builder = MaterialAlertDialogBuilder(requireContext())
@@ -531,6 +556,23 @@ class HomeFragment : Fragment() {
         }
     }
 
+    private fun completePendingHistoricalLocationMapEdit(selectedLocation: Pair<Double, Double>) {
+        if (!mockServiceViewModel.pendingHistoricalLocationMapPick) {
+            return
+        }
+        val draft = mockServiceViewModel.pendingHistoricalLocationEditDraft ?: return
+        mockServiceViewModel.pendingHistoricalLocationEditDraft = draft.copy(
+            latitudeText = BigDecimal.valueOf(selectedLocation.first).toPlainString(),
+            longitudeText = BigDecimal.valueOf(selectedLocation.second).toPlainString(),
+        )
+        mockServiceViewModel.pendingHistoricalLocationMapPick = false
+        mockServiceViewModel.reopenHistoricalLocationEditDialog = true
+        Toast.makeText(requireContext(), "地图选点已回填", Toast.LENGTH_SHORT).show()
+        if (findNavController().currentDestination?.id == R.id.nav_home) {
+            findNavController().navigate(R.id.nav_mock)
+        }
+    }
+
     override fun onResume() {
         super.onResume()
 
@@ -542,8 +584,9 @@ class HomeFragment : Fragment() {
         super.onDestroy()
 
         baiduMapViewModel.isExists = false
-        if (mLocationClient.isStarted)
+        if (::mLocationClient.isInitialized && mLocationClient.isStarted) {
             mLocationClient.stop()
+        }
         if (_binding != null) {
             binding.bmapView.map.isMyLocationEnabled = false
         }

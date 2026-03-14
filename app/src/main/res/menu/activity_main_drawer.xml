@@ -17,6 +17,10 @@
             android:icon="@drawable/baseline_satellite_alt_24"
             android:title="@string/menu_gnss_mock" />
         <item
+            android:id="@+id/nav_step_debug"
+            android:icon="@drawable/baseline_info_outline_24"
+            android:title="@string/menu_step_debug" />
+        <item
             android:id="@+id/nav_route_gallery"
             android:icon="@drawable/baseline_route_24"
             android:title="@string/menu_route_mock" />

@@ -1,9 +1,32 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
+    <attr name="portalAppBarColor" format="color" />
+    <attr name="portalAppBarColorCenter" format="color" />
+    <attr name="portalAppBarColorDark" format="color" />
+    <attr name="portalMiniTitleColor" format="color" />
+    <attr name="portalHintColor" format="color" />
+    <attr name="portalTextColor" format="color" />
+    <attr name="portalTextSecondaryColor" format="color" />
+    <attr name="portalNavIconColor" format="color" />
+    <attr name="portalMockOffColor" format="color" />
+    <attr name="portalMockOnColor" format="color" />
+    <attr name="portalSideNavTextColor" format="color" />
+    <attr name="portalSideNavStartColor" format="color" />
+    <attr name="portalSideNavCenterColor" format="color" />
+    <attr name="portalSideNavEndColor" format="color" />
+    <attr name="portalAppBarTextColor" format="color" />
+    <attr name="portalAppBarIconColor" format="color" />
+    <attr name="portalActiveColor" format="color" />
+    <attr name="portalFocusedTouchColor" format="color" />
+    <attr name="portalLocationDetailBackground" format="color" />
+    <attr name="portalLocationDetailBlock" format="color" />
+    <attr name="portalWindowBackground" format="color" />
+    <attr name="portalCardColor" format="color" />
+    <attr name="portalButtonTextColor" format="color" />
+    <attr name="portalButtonIconColor" format="color" />
+
     <declare-styleable name="RockerView">
-        <attr name="areaBackground" format="color" />
-        <attr name="rockerBackground" format="color" />
-        <attr name="pressAreaBackground" format="color" />
-        <attr name="pressRockerBackground" format="color" />
+        <attr name="areaBackground" format="reference|color" />
+        <attr name="rockerBackground" format="reference|color" />
     </declare-styleable>
 </resources>

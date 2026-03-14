@@ -5,8 +5,8 @@ plugins {
 
 android {
     namespace = "moe.fuqiuluo.xposed"
-    compileSdk = 35
-    ndkVersion = "26.1.10909125"
+    compileSdk = 34
+    //ndkVersion = "26.1.10909125"
 
     defaultConfig {
         minSdk = 24

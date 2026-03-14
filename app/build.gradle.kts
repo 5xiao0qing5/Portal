@@ -14,7 +14,7 @@ android {
     defaultConfig {
         applicationId = "moe.fuqiuluo.portal"
         minSdk = 26
-        targetSdk = 35
+        targetSdk = 33
         versionCode = getVersionCode()
         versionName = "1.0.4" + ".r${getGitCommitCount()}." + getVersionName()
 

@@ -5,15 +5,19 @@ import android.animation.AnimatorListenerAdapter
 import android.animation.AnimatorSet
 import android.animation.ObjectAnimator
 import android.annotation.SuppressLint
+import android.graphics.Bitmap
+import android.graphics.Canvas
 import android.graphics.Color
+import android.graphics.Paint
 import android.graphics.Point
 import android.os.Bundle
 import android.util.Log
 import android.view.LayoutInflater
-import android.view.MotionEvent
 import android.view.View
 import android.view.ViewGroup
 import android.view.animation.DecelerateInterpolator
+import android.widget.ListView
+import android.widget.SimpleAdapter
 import android.widget.Toast
 import androidx.core.widget.addTextChangedListener
 import androidx.fragment.app.Fragment
@@ -28,6 +32,8 @@ import com.baidu.location.BDLocation
 import com.baidu.location.LocationClient
 import com.baidu.location.LocationClientOption
 import com.baidu.mapapi.map.BaiduMap
+import com.baidu.mapapi.map.BitmapDescriptor
+import com.baidu.mapapi.map.BitmapDescriptorFactory
 import com.baidu.mapapi.map.LogoPosition
 import com.baidu.mapapi.map.MapPoi
 import com.baidu.mapapi.map.MapStatusUpdateFactory
@@ -36,14 +42,20 @@ import com.baidu.mapapi.map.MyLocationData
 import com.baidu.mapapi.map.PolylineOptions
 import com.baidu.mapapi.model.LatLng
 import com.baidu.mapapi.search.geocode.ReverseGeoCodeOption
+import com.baidu.mapapi.search.sug.SuggestionSearch
+import com.baidu.mapapi.search.sug.SuggestionSearchOption
 import com.google.android.material.dialog.MaterialAlertDialogBuilder
 import com.google.android.material.textfield.TextInputEditText
-import kotlinx.coroutines.launch
 import moe.fuqiuluo.portal.MainActivity
+import kotlinx.coroutines.Job
+import kotlinx.coroutines.delay
+import kotlinx.coroutines.launch
 import moe.fuqiuluo.portal.Portal
 import moe.fuqiuluo.portal.R
+import moe.fuqiuluo.portal.bdmap.Poi
 import moe.fuqiuluo.portal.bdmap.locateMe
 import moe.fuqiuluo.portal.bdmap.setMapConfig
+import moe.fuqiuluo.portal.bdmap.toPoi
 import moe.fuqiuluo.portal.databinding.FragmentRouteEditBinding
 import moe.fuqiuluo.portal.ext.gcj02
 import moe.fuqiuluo.portal.ext.jsonHistoricalRoutes
@@ -53,7 +65,6 @@ import moe.fuqiuluo.portal.ui.viewmodel.BaiduMapViewModel
 import moe.fuqiuluo.portal.ui.viewmodel.HomeViewModel
 import java.math.BigDecimal
 import java.util.List
-import kotlin.random.Random
 
 
 class RouteEditFragment : Fragment() {
@@ -66,7 +77,7 @@ class RouteEditFragment : Fragment() {
 
     private var mPoints: ArrayList<Pair<Double, Double>> = arrayListOf()
     private var isDrawing = false
-    private var lastPoint: Pair<Double, Double>? = null
+    private var hasAutoCenteredToCurrentLocation = false
 
 
     override fun onCreateView(
@@ -99,11 +110,16 @@ class RouteEditFragment : Fragment() {
 
             setMapConfig(
                 baiduMapViewModel.perspectiveState,
-                if (Random.nextBoolean()) moe.fuqiuluo.portal.R.drawable.icon_my_location else null
+                null
             )
 
             setOnMapClickListener(object : BaiduMap.OnMapClickListener {
                 override fun onMapClick(loc: LatLng) {
+                    if (isDrawing) {
+                        addRoutePoint(loc.wgs84)
+                        return
+                    }
+
                     // 默认获取的gcj02坐标，需要转换一下
                     baiduMapViewModel.markedLoc = loc.wgs84
 
@@ -146,17 +162,19 @@ class RouteEditFragment : Fragment() {
                     else -> moe.fuqiuluo.portal.R.id.map_type_normal
                 }
             )
+
+            baiduMapViewModel.currentLocation?.let {
+                setMapStatus(MapStatusUpdateFactory.newLatLng(it.gcj02))
+                hasAutoCenteredToCurrentLocation = true
+            }
         }
 
         binding.fab.setOnClickListener { view ->
             val subFabList = arrayOf(
                 binding.fabStart,
                 binding.fabRollback,
-                binding.fabComplete,
-                binding.fabMyLocation
+                binding.fabComplete
             )
-
-            routeEditViewModel.mFabOpened = true
 
             if (!routeEditViewModel.mFabOpened) {
                 routeEditViewModel.mFabOpened = true
@@ -257,6 +275,10 @@ class RouteEditFragment : Fragment() {
                 with(baiduMapViewModel) {
                     currentLocation = loc.wgs84
                     baiduMap.setMyLocationData(locData)
+                    if (!hasAutoCenteredToCurrentLocation) {
+                        baiduMap.setMapStatus(MapStatusUpdateFactory.newLatLng(currentLocation!!.gcj02))
+                        hasAutoCenteredToCurrentLocation = true
+                    }
                 }
             }
         })
@@ -281,42 +303,16 @@ class RouteEditFragment : Fragment() {
             context?.mapType = binding.bmapView.map.mapType
         }
 
-        baiduMapViewModel.baiduMap.setOnMapTouchListener {
-            if (isDrawing) {
-                val currentPoint = baiduMapViewModel.baiduMap.mapStatus.target.wgs84
-
-                when (it.action) {
-                    MotionEvent.ACTION_DOWN -> { // 新增 DOWN 事件处理
-                        if (mPoints.size <= 0) {
-                            mPoints.add(currentPoint)
-                        }
-                        lastPoint = currentPoint
-                    }
-
-                    MotionEvent.ACTION_MOVE -> {
-                        if (lastPoint == null) {
-                            lastPoint = currentPoint
-                        }
-                        lastPoint?.let { lp -> drawLine(lp, currentPoint) }
-                    }
-
-                    MotionEvent.ACTION_UP -> {
-                        mPoints.add(currentPoint)
-                        lastPoint = null // 关键修改：重置起点
-                    }
-                }
-            }
-        }
-
         binding.fabStart.setOnClickListener {
-            isDrawing = true;
+            isDrawing = true
             mPoints = arrayListOf()
-            lastPoint = null; // 重置上一个点
+            refresh()
+            Toast.makeText(requireContext(), "点击地图手动添加点，系统会自动连线", Toast.LENGTH_SHORT).show()
         }
 
         binding.fabRollback.setOnClickListener {
             // 撤回上一个点并且刷新地图
-            if (mPoints.size > 0) {
+            if (mPoints.isNotEmpty()) {
                 mPoints.removeAt(mPoints.size - 1)
                 refresh()
             }
@@ -324,6 +320,10 @@ class RouteEditFragment : Fragment() {
 
         binding.fabComplete.setOnClickListener {
             isDrawing = false
+            if (mPoints.size < 2) {
+                Toast.makeText(requireContext(), "路线至少需要两个点", Toast.LENGTH_SHORT).show()
+                return@setOnClickListener
+            }
             if (!showAddRouteDialog()) {
                 Toast.makeText(requireContext(), "选择路线异常", Toast.LENGTH_SHORT).show()
             }
@@ -336,8 +336,40 @@ class RouteEditFragment : Fragment() {
         return binding.root
     }
 
+    override fun onResume() {
+        super.onResume()
+        baiduMapViewModel.onPoiSelected = { poi ->
+            val point = poi.latitude to poi.longitude
+            baiduMapViewModel.markName = poi.name
+            baiduMapViewModel.markedLoc = point
+            val gcjLoc = point.gcj02
+            baiduMapViewModel.baiduMap.setMapStatus(MapStatusUpdateFactory.newLatLng(gcjLoc))
+            if (isDrawing) {
+                addRoutePoint(point)
+                Toast.makeText(requireContext(), "已添加搜索点", Toast.LENGTH_SHORT).show()
+            } else {
+                markMap(moveEyes = true)
+            }
+        }
+    }
+
+    override fun onPause() {
+        super.onPause()
+        if (baiduMapViewModel.onPoiSelected != null) {
+            baiduMapViewModel.onPoiSelected = null
+        }
+    }
+
     private fun refresh() {
         baiduMapViewModel.baiduMap.clear() // 清除之前的所有覆盖物
+
+        mPoints.forEachIndexed { index, point ->
+            baiduMapViewModel.baiduMap.addOverlay(
+                MarkerOptions()
+                    .position(point.gcj02)
+                    .icon(createPointMarker(index + 1))
+            )
+        }
 
         // 绘制之前记录的点到点的线
         for (i in 0 until mPoints.size - 1) {
@@ -350,25 +382,161 @@ class RouteEditFragment : Fragment() {
         }
     }
 
-    private fun drawLine(start: Pair<Double, Double>, end: Pair<Double, Double>) {
-        baiduMapViewModel.baiduMap.clear() // 清除之前的所有覆盖物
+    private fun addRoutePoint(point: Pair<Double, Double>) {
+        mPoints.add(point)
+        baiduMapViewModel.markedLoc = point
+        refresh()
+    }
 
-        // 绘制之前记录的点到点的线
-        for (i in 0 until mPoints.size - 1) {
-            baiduMapViewModel.baiduMap.addOverlay(
-                PolylineOptions()
-                    .color(Color.argb(178, 0, 78, 255))
-                    .width(10)
-                    .points(List.of<LatLng>(mPoints[i].gcj02, mPoints[i + 1].gcj02))
+    private fun createPointMarker(index: Int): BitmapDescriptor {
+        val density = resources.displayMetrics.density
+        val size = (28 * density).toInt().coerceAtLeast(56)
+        val bitmap = Bitmap.createBitmap(size, size, Bitmap.Config.ARGB_8888)
+        val canvas = Canvas(bitmap)
+
+        val circlePaint = Paint(Paint.ANTI_ALIAS_FLAG).apply {
+            color = Color.argb(230, 0, 78, 255)
+            style = Paint.Style.FILL
+        }
+        val borderPaint = Paint(Paint.ANTI_ALIAS_FLAG).apply {
+            color = Color.WHITE
+            style = Paint.Style.STROKE
+            strokeWidth = 2 * density
+        }
+        val textPaint = Paint(Paint.ANTI_ALIAS_FLAG).apply {
+            color = Color.WHITE
+            textAlign = Paint.Align.CENTER
+            textSize = 12 * density
+            isFakeBoldText = true
+        }
+
+        val radius = size / 2f - 2 * density
+        val center = size / 2f
+        canvas.drawCircle(center, center, radius, circlePaint)
+        canvas.drawCircle(center, center, radius, borderPaint)
+
+        val text = index.toString()
+        val baseline = center - (textPaint.descent() + textPaint.ascent()) / 2f
+        canvas.drawText(text, center, baseline, textPaint)
+
+        return BitmapDescriptorFactory.fromBitmap(bitmap)
+    }
+
+    private fun showSearchPlaceDialog() {
+        val dialogView = LayoutInflater.from(requireContext())
+            .inflate(R.layout.dialog_search_poi, null)
+        val editKeyword = dialogView.findViewById<TextInputEditText>(R.id.etSearchKeyword)
+        val resultList = dialogView.findViewById<ListView>(R.id.searchResultList)
+        val suggestionSearch = SuggestionSearch.newInstance()
+        var searchJob: Job? = null
+
+        val dialog = MaterialAlertDialogBuilder(requireContext())
+            .setTitle("联网搜索地点")
+            .setView(dialogView)
+            .setNegativeButton("关闭", null)
+            .create()
+
+        suggestionSearch.setOnGetSuggestionResultListener { suggestionResult ->
+            if (!isAdded) {
+                return@setOnGetSuggestionResultListener
+            }
+            val data = suggestionResult?.toPoi(baiduMapViewModel.currentLocation)
+                ?.map { it.toMap() }
+                .orEmpty()
+
+            if (data.isEmpty()) {
+                Toast.makeText(requireContext(), "未搜索到相关位置", Toast.LENGTH_SHORT).show()
+                resultList.adapter = null
+                return@setOnGetSuggestionResultListener
+            }
+
+            resultList.adapter = SimpleAdapter(
+                requireContext(),
+                data,
+                R.layout.layout_search_poi_item,
+                arrayOf(
+                    Poi.KEY_NAME,
+                    Poi.KEY_ADDRESS,
+                    Poi.KEY_LONGITUDE_RAW,
+                    Poi.KEY_LATITUDE_RAW,
+                    Poi.KEY_TAG
+                ),
+                intArrayOf(
+                    R.id.poi_name,
+                    R.id.poi_address,
+                    R.id.poi_longitude,
+                    R.id.poi_latitude,
+                    R.id.poi_tag
+                )
             )
         }
 
-        baiduMapViewModel.baiduMap.addOverlay(
-            PolylineOptions()
-                .color(Color.argb(178, 0, 78, 255))
-                .width(10)
-                .points(List.of<LatLng>(start.gcj02, end.gcj02))
-        )
+        fun requestSearch(keyword: String) {
+            val normalizedKeyword = keyword.trim()
+            if (normalizedKeyword.length < 2) {
+                resultList.adapter = null
+                return
+            }
+            try {
+                suggestionSearch.requestSuggestion(createSuggestionSearchOption(normalizedKeyword))
+            } catch (e: Exception) {
+                Toast.makeText(requireContext(), "搜索出错", Toast.LENGTH_SHORT).show()
+                Log.e("RouteEditFragment", "Search error: ${e.stackTraceToString()}")
+            }
+        }
+
+        editKeyword.addTextChangedListener {
+            searchJob?.cancel()
+            val keyword = it?.toString().orEmpty().trim()
+            if (keyword.length < 2) {
+                resultList.adapter = null
+                return@addTextChangedListener
+            }
+            searchJob = viewLifecycleOwner.lifecycleScope.launch {
+                delay(300)
+                if (!dialog.isShowing) {
+                    return@launch
+                }
+                requestSearch(keyword)
+            }
+        }
+
+        resultList.setOnItemClickListener { _, view, _, _ ->
+            val lng = view.findViewById<android.widget.TextView>(R.id.poi_longitude).text.toString().toDouble()
+            val lat = view.findViewById<android.widget.TextView>(R.id.poi_latitude).text.toString().toDouble()
+            val point = lat to lng
+            baiduMapViewModel.markedLoc = point
+            baiduMapViewModel.markName = view.findViewById<android.widget.TextView>(R.id.poi_name).text.toString()
+
+            val gcjLoc = point.gcj02
+            baiduMapViewModel.baiduMap.setMapStatus(MapStatusUpdateFactory.newLatLng(gcjLoc))
+
+            if (isDrawing) {
+                addRoutePoint(point)
+                Toast.makeText(requireContext(), "已添加搜索点", Toast.LENGTH_SHORT).show()
+            } else {
+                markMap(moveEyes = true)
+            }
+            dialog.dismiss()
+        }
+
+        dialog.setOnDismissListener {
+            searchJob?.cancel()
+            suggestionSearch.destroy()
+        }
+        dialog.show()
+    }
+
+    private fun createSuggestionSearchOption(keyword: String): SuggestionSearchOption {
+        return SuggestionSearchOption()
+            .keyword(keyword.trim())
+            .city(MainActivity.mCityString ?: "")
+            .citylimit(false)
+            .apply {
+                baiduMapViewModel.currentLocation?.let {
+                    location(it.gcj02)
+                }
+            }
     }
 
 

@@ -9,6 +9,7 @@ import com.baidu.mapapi.map.BitmapDescriptorFactory
 import com.baidu.mapapi.map.MyLocationConfiguration
 import moe.fuqiuluo.portal.R
 import com.baidu.mapapi.search.geocode.GeoCoder
+import moe.fuqiuluo.portal.bdmap.Poi
 import moe.fuqiuluo.portal.bdmap.setMapConfig
 
 class BaiduMapViewModel: ViewModel() {
@@ -48,6 +49,8 @@ class BaiduMapViewModel: ViewModel() {
     val mMapIndicator: BitmapDescriptor? by lazy {
         BitmapDescriptorFactory.fromResource(R.drawable.icon_selected_location_16)
     }
+
+    var onPoiSelected: ((Poi) -> Unit)? = null
 
     var mGeoCoder: GeoCoder? = null
 }
